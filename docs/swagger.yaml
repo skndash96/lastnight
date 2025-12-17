@@ -1,0 +1,190 @@
+definitions:
+  db.Team:
+    properties:
+      created_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      domain:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      message:
+        example: Email is required field
+        type: string
+    type: object
+  dto.GetTeamResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.Team'
+    type: object
+  dto.HealthResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  dto.JoinTeamResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.Team'
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.LoginResponse:
+    type: object
+  dto.LogoutResponse:
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.RegisterResponse:
+    type: object
+  pgtype.InfinityModifier:
+    enum:
+    - 1
+    - 0
+    - -1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - Infinity
+    - Finite
+    - NegativeInfinity
+  pgtype.Timestamp:
+    properties:
+      infinityModifier:
+        $ref: '#/definitions/pgtype.InfinityModifier'
+      time:
+        description: Time zone will be ignored when encoding to PostgreSQL.
+        type: string
+      valid:
+        type: boolean
+    type: object
+info:
+  contact:
+    email: dashskndash@gmail.com
+    name: skndash96
+  description: This is the backend server for Lastnight
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Lastnight API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      description: Authenticates a user with email and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Login endpoint
+      tags:
+      - Auth
+  /api/auth/logout:
+    delete:
+      description: Logs out the current user by clearing the authentication token
+        cookie
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Logout endpoint
+      tags:
+      - Auth
+  /api/auth/register:
+    post:
+      description: Registers a new user and returns an authentication token
+      parameters:
+      - description: Register credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Signup endpoint
+      tags:
+      - Auth
+  /api/health:
+    get:
+      description: Returns the health status of the application
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Healthcheck endpoint
+      tags:
+      - Health
+  /api/teams/default:
+    get:
+      description: Get the default team for the user
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Default Team
+      tags:
+      - Team
+    post:
+      description: Join the default team for the user
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Join Default Team
+      tags:
+      - Team
+swagger: "2.0"
