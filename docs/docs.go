@@ -125,16 +125,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/teams/default": {
+        "/api/teams": {
             "get": {
-                "description": "Get the default team for the user",
+                "description": "Get the user's teams list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Team"
                 ],
-                "summary": "Get Default Team",
+                "summary": "Get Teams",
                 "responses": {
                     "default": {
                         "description": "",
@@ -143,7 +143,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/teams/default": {
             "post": {
                 "description": "Join the default team for the user",
                 "produces": [
@@ -162,9 +164,339 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/teams/{teamID}/tags": {
+            "get": {
+                "description": "Get the tags of a team",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Get Tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "New Tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tag",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/teams/{teamID}/tags/{tagID}": {
+            "put": {
+                "description": "Update a tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Update Tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Tag",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Delete Tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/teams/{teamID}/tags/{tagID}/values": {
+            "get": {
+                "description": "Get the values of a tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Get Tag Values",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new tag value",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Create Tag Value",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/teams/{teamID}/tags/{tagID}/values/{valueID}": {
+            "delete": {
+                "description": "Delete a tag value",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Delete Tag Value",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Value ID",
+                        "name": "valueID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "db.GetTeamsByUserIDRow": {
+            "type": "object",
+            "properties": {
+                "membership_id": {
+                    "type": "integer"
+                },
+                "team_domain": {
+                    "type": "string"
+                },
+                "team_id": {
+                    "type": "integer"
+                },
+                "team_name": {
+                    "type": "string"
+                },
+                "user_joined_at": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "user_role": {
+                    "$ref": "#/definitions/db.TeamUserRole"
+                }
+            }
+        },
+        "db.Tag": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "data_type": {
+                    "$ref": "#/definitions/db.TagDataType"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "team_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "db.TagDataType": {
+            "type": "string",
+            "enum": [
+                "string",
+                "number",
+                "boolean"
+            ],
+            "x-enum-varnames": [
+                "TagDataTypeString",
+                "TagDataTypeNumber",
+                "TagDataTypeBoolean"
+            ]
+        },
+        "db.TagValue": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "tag_id": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "db.Team": {
             "type": "object",
             "properties": {
@@ -182,6 +514,76 @@ const docTemplate = `{
                 }
             }
         },
+        "db.TeamUserRole": {
+            "type": "string",
+            "enum": [
+                "member",
+                "mod"
+            ],
+            "x-enum-varnames": [
+                "TeamUserRoleMember",
+                "TeamUserRoleMod"
+            ]
+        },
+        "dto.CreateTagRequest": {
+            "type": "object",
+            "required": [
+                "data_type",
+                "name",
+                "teamID"
+            ],
+            "properties": {
+                "data_type": {
+                    "maxLength": 100,
+                    "minLength": 2,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.TagDataType"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "teamID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateTagResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/db.Tag"
+                }
+            }
+        },
+        "dto.CreateTagValueResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/db.TagValue"
+                }
+            }
+        },
+        "dto.DeleteTagResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/db.Tag"
+                }
+            }
+        },
+        "dto.DeleteTagValueResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/db.TagValue"
+                }
+            }
+        },
         "dto.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -191,11 +593,36 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.GetTeamResponse": {
+        "dto.GetTagValuesResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/db.Team"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.TagValue"
+                    }
+                }
+            }
+        },
+        "dto.GetTagsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.Tag"
+                    }
+                }
+            }
+        },
+        "dto.GetTeamsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.GetTeamsByUserIDRow"
+                    }
                 }
             }
         },
@@ -259,6 +686,35 @@ const docTemplate = `{
         },
         "dto.RegisterResponse": {
             "type": "object"
+        },
+        "dto.UpdateTagRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "tagID",
+                "teamID"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "tagID": {
+                    "type": "integer"
+                },
+                "teamID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UpdateTagResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/db.Tag"
+                }
+            }
         },
         "pgtype.InfinityModifier": {
             "type": "integer",

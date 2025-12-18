@@ -12,18 +12,12 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/service"
 )
 
-type AuthHandler interface {
-	Login(c echo.Context) error
-	Logout(c echo.Context) error
-	Register(c echo.Context) error
-}
-
 type authHandler struct {
 	appCfg *config.AppConfig
 	srv    service.AuthService
 }
 
-func NewAuthHandler(appCfg *config.AppConfig, srv service.AuthService) AuthHandler {
+func NewAuthHandler(appCfg *config.AppConfig, srv service.AuthService) *authHandler {
 	return &authHandler{
 		appCfg: appCfg,
 		srv:    srv,

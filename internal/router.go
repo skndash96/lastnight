@@ -6,6 +6,7 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/auth"
 	"github.com/skndash96/lastnight-backend/internal/config"
 	"github.com/skndash96/lastnight-backend/internal/handler"
+	"github.com/skndash96/lastnight-backend/internal/repository"
 	"github.com/skndash96/lastnight-backend/internal/service"
 )
 
@@ -14,7 +15,7 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 
 	jwtProvider := auth.NewJwtProvider(cfg.Auth.JWT)
 
-	r.Use(auth.AuthMW(jwtProvider))
+	r.Use(auth.SessionMW(jwtProvider, cfg.Auth.Cookie))
 
 	{
 		h := handler.NewHealthHandler()
@@ -33,12 +34,30 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 	}
 
 	{
+		teamRepo := repository.NewTeamRepository(pool)
+
 		teamSrv := service.NewTeamService(pool)
-		h := handler.NewTeamHandler(teamSrv)
+		tagSrv := service.NewTagService(pool)
 
-		g := r.Group("/teams")
+		team_h := handler.NewTeamHandler(teamSrv)
+		tag_h := handler.NewTagHandler(tagSrv)
 
-		g.GET("/default", h.GetDefaultTeam)
-		g.POST("/default", h.JoinDefaultTeam)
+		teamsG := r.Group("/teams")
+
+		teamsG.GET("", team_h.GetTeams)
+		teamsG.POST("/default", team_h.JoinDefaultTeam)
+
+		teamG := teamsG.Group("/:teamID")
+		teamG.Use(auth.TeamMW(teamRepo))
+
+		teamG.GET("/tags", tag_h.ListTags)
+		teamG.POST("/tags", tag_h.CreateTag)
+
+		teamG.PUT("/tags/:tagID", tag_h.UpdateTag)
+		teamG.DELETE("/tags/:tagID", tag_h.DeleteTag)
+
+		teamG.GET("/tags/:tagID/values", tag_h.ListTagValues)
+		teamG.POST("/tags/:tagID/values", tag_h.CreateTagValue)
+		teamG.DELETE("/tags/:tagID/values", tag_h.DeleteTagValue)
 	}
 }

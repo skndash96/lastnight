@@ -5,13 +5,9 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/dto"
 )
 
-type HealthHandler interface {
-	HealthCheck(c echo.Context) error
-}
-
 type healthHandler struct{}
 
-func NewHealthHandler() HealthHandler {
+func NewHealthHandler() *healthHandler {
 	return &healthHandler{}
 }
 

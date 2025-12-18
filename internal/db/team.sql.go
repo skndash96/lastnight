@@ -52,33 +52,73 @@ func (q *Queries) GetTeamByDomain(ctx context.Context, domain string) (Team, err
 	return i, err
 }
 
-const getTeamProfileByUserID = `-- name: GetTeamProfileByUserID :one
+const getTeamMembershipByUserID = `-- name: GetTeamMembershipByUserID :one
+SELECT id, team_id, user_id, role, joined_at FROM team_memberships WHERE user_id = $1 AND team_id = $2
+`
+
+type GetTeamMembershipByUserIDParams struct {
+	UserID int32 `json:"user_id"`
+	TeamID int32 `json:"team_id"`
+}
+
+func (q *Queries) GetTeamMembershipByUserID(ctx context.Context, arg GetTeamMembershipByUserIDParams) (TeamMembership, error) {
+	row := q.db.QueryRow(ctx, getTeamMembershipByUserID, arg.UserID, arg.TeamID)
+	var i TeamMembership
+	err := row.Scan(
+		&i.ID,
+		&i.TeamID,
+		&i.UserID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
+const getTeamsByUserID = `-- name: GetTeamsByUserID :many
 SELECT
   t.id AS team_id,
   t.name AS team_name,
+  t.domain AS team_domain,
+  tm.id AS membership_id,
   tm.role AS user_role,
-  t.created_at AS team_created_at
+  tm.joined_at AS user_joined_at
   FROM teams t
   INNER JOIN team_memberships tm ON t.id = tm.team_id
   WHERE tm.user_id = $1
-  LIMIT 1
 `
 
-type GetTeamProfileByUserIDRow struct {
-	TeamID        int32            `json:"team_id"`
-	TeamName      string           `json:"team_name"`
-	UserRole      TeamUserRole     `json:"user_role"`
-	TeamCreatedAt pgtype.Timestamp `json:"team_created_at"`
+type GetTeamsByUserIDRow struct {
+	TeamID       int32            `json:"team_id"`
+	TeamName     string           `json:"team_name"`
+	TeamDomain   string           `json:"team_domain"`
+	MembershipID int32            `json:"membership_id"`
+	UserRole     TeamUserRole     `json:"user_role"`
+	UserJoinedAt pgtype.Timestamp `json:"user_joined_at"`
 }
 
-func (q *Queries) GetTeamProfileByUserID(ctx context.Context, userID int32) (GetTeamProfileByUserIDRow, error) {
-	row := q.db.QueryRow(ctx, getTeamProfileByUserID, userID)
-	var i GetTeamProfileByUserIDRow
-	err := row.Scan(
-		&i.TeamID,
-		&i.TeamName,
-		&i.UserRole,
-		&i.TeamCreatedAt,
-	)
-	return i, err
+func (q *Queries) GetTeamsByUserID(ctx context.Context, userID int32) ([]GetTeamsByUserIDRow, error) {
+	rows, err := q.db.Query(ctx, getTeamsByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTeamsByUserIDRow
+	for rows.Next() {
+		var i GetTeamsByUserIDRow
+		if err := rows.Scan(
+			&i.TeamID,
+			&i.TeamName,
+			&i.TeamDomain,
+			&i.MembershipID,
+			&i.UserRole,
+			&i.UserJoinedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

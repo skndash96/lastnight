@@ -11,6 +11,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type TagDataType string
+
+const (
+	TagDataTypeString  TagDataType = "string"
+	TagDataTypeNumber  TagDataType = "number"
+	TagDataTypeBoolean TagDataType = "boolean"
+)
+
+func (e *TagDataType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TagDataType(s)
+	case string:
+		*e = TagDataType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TagDataType: %T", src)
+	}
+	return nil
+}
+
+type NullTagDataType struct {
+	TagDataType TagDataType `json:"tag_data_type"`
+	Valid       bool        `json:"valid"` // Valid is true if TagDataType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTagDataType) Scan(value interface{}) error {
+	if value == nil {
+		ns.TagDataType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TagDataType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTagDataType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TagDataType), nil
+}
+
 type TeamUserRole string
 
 const (
@@ -63,18 +106,18 @@ type Account struct {
 	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
 }
 
-type TagType struct {
+type Tag struct {
 	ID        int32            `json:"id"`
-	Name      string           `json:"name"`
-	DataType  string           `json:"data_type"`
 	TeamID    int32            `json:"team_id"`
+	Name      string           `json:"name"`
+	DataType  TagDataType      `json:"data_type"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
 type TagValue struct {
 	ID        int32            `json:"id"`
+	TagID     int32            `json:"tag_id"`
 	Value     string           `json:"value"`
-	TagTypeID int32            `json:"tag_type_id"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
@@ -85,11 +128,11 @@ type Team struct {
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
-type TeamMemberPreference struct {
+type TeamMemberTag struct {
 	ID               int32            `json:"id"`
 	TeamMembershipID int32            `json:"team_membership_id"`
-	TagKey           string           `json:"tag_key"`
-	TagValue         string           `json:"tag_value"`
+	TagID            int32            `json:"tag_id"`
+	TagValueID       int32            `json:"tag_value_id"`
 	CreatedAt        pgtype.Timestamp `json:"created_at"`
 }
 

@@ -1,4 +1,53 @@
 definitions:
+  db.GetTeamsByUserIDRow:
+    properties:
+      membership_id:
+        type: integer
+      team_domain:
+        type: string
+      team_id:
+        type: integer
+      team_name:
+        type: string
+      user_joined_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      user_role:
+        $ref: '#/definitions/db.TeamUserRole'
+    type: object
+  db.Tag:
+    properties:
+      created_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      data_type:
+        $ref: '#/definitions/db.TagDataType'
+      id:
+        type: integer
+      name:
+        type: string
+      team_id:
+        type: integer
+    type: object
+  db.TagDataType:
+    enum:
+    - string
+    - number
+    - boolean
+    type: string
+    x-enum-varnames:
+    - TagDataTypeString
+    - TagDataTypeNumber
+    - TagDataTypeBoolean
+  db.TagValue:
+    properties:
+      created_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      id:
+        type: integer
+      tag_id:
+        type: integer
+      value:
+        type: string
+    type: object
   db.Team:
     properties:
       created_at:
@@ -10,16 +59,78 @@ definitions:
       name:
         type: string
     type: object
+  db.TeamUserRole:
+    enum:
+    - member
+    - mod
+    type: string
+    x-enum-varnames:
+    - TeamUserRoleMember
+    - TeamUserRoleMod
+  dto.CreateTagRequest:
+    properties:
+      data_type:
+        allOf:
+        - $ref: '#/definitions/db.TagDataType'
+        maxLength: 100
+        minLength: 2
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      teamID:
+        type: integer
+    required:
+    - data_type
+    - name
+    - teamID
+    type: object
+  dto.CreateTagResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.Tag'
+    type: object
+  dto.CreateTagValueResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.TagValue'
+    type: object
+  dto.DeleteTagResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.Tag'
+    type: object
+  dto.DeleteTagValueResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.TagValue'
+    type: object
   dto.ErrorResponse:
     properties:
       message:
         example: Email is required field
         type: string
     type: object
-  dto.GetTeamResponse:
+  dto.GetTagValuesResponse:
     properties:
       data:
-        $ref: '#/definitions/db.Team'
+        items:
+          $ref: '#/definitions/db.TagValue'
+        type: array
+    type: object
+  dto.GetTagsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/db.Tag'
+        type: array
+    type: object
+  dto.GetTeamsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/db.GetTeamsByUserIDRow'
+        type: array
     type: object
   dto.HealthResponse:
     properties:
@@ -61,6 +172,26 @@ definitions:
     - password
     type: object
   dto.RegisterResponse:
+    type: object
+  dto.UpdateTagRequest:
+    properties:
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      tagID:
+        type: integer
+      teamID:
+        type: integer
+    required:
+    - name
+    - tagID
+    - teamID
+    type: object
+  dto.UpdateTagResponse:
+    properties:
+      data:
+        $ref: '#/definitions/db.Tag'
     type: object
   pgtype.InfinityModifier:
     enum:
@@ -162,9 +293,9 @@ paths:
       summary: Healthcheck endpoint
       tags:
       - Health
-  /api/teams/default:
+  /api/teams:
     get:
-      description: Get the default team for the user
+      description: Get the user's teams list
       produces:
       - application/json
       responses:
@@ -172,9 +303,182 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get Default Team
+      summary: Get Teams
       tags:
       - Team
+  /api/teams/{teamID}/tags:
+    get:
+      description: Get the tags of a team
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Tags
+      tags:
+      - Tag
+    post:
+      description: Create a new tag
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Tag
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTagRequest'
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: New Tag
+      tags:
+      - Tag
+  /api/teams/{teamID}/tags/{tagID}:
+    delete:
+      description: Delete a tag
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete Tag
+      tags:
+      - Tag
+    put:
+      description: Update a tag
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagID
+        required: true
+        type: string
+      - description: Tag
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTagRequest'
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update Tag
+      tags:
+      - Tag
+  /api/teams/{teamID}/tags/{tagID}/values:
+    get:
+      description: Get the values of a tag
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get Tag Values
+      tags:
+      - Tag
+    post:
+      description: Create a new tag value
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create Tag Value
+      tags:
+      - Tag
+  /api/teams/{teamID}/tags/{tagID}/values/{valueID}:
+    delete:
+      description: Delete a tag value
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagID
+        required: true
+        type: string
+      - description: Value ID
+        in: path
+        name: valueID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete Tag Value
+      tags:
+      - Tag
+  /api/teams/default:
     post:
       description: Join the default team for the user
       produces:

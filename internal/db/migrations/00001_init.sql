@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
 
-  CONSTRAINT unique_user_provider UNIQUE (user_id, provider)
+  CONSTRAINT unique_provider_user UNIQUE (user_id, provider),
+  CONSTRAINT unique_provider_account_id UNIQUE (provider, provider_account_id)
 );
 
 CREATE INDEX idx_accounts_user_id ON accounts(user_id);
@@ -24,7 +25,7 @@ CREATE INDEX idx_accounts_user_id ON accounts(user_id);
 CREATE TABLE IF NOT EXISTS teams (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    domain TEXT NOT NULL,
+    domain TEXT UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -40,30 +41,34 @@ CREATE TABLE IF NOT EXISTS team_memberships (
     CONSTRAINT unique_team_user UNIQUE (user_id) -- Ensures a user can only join a team once
 );
 
-CREATE TABLE IF NOT EXISTS tag_types (
+CREATE TYPE TAG_DATA_TYPE AS ENUM ('string', 'number', 'boolean');
+
+CREATE TABLE IF NOT EXISTS tags (
     id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    data_type TEXT NOT NULL CHECK (data_type IN ('string', 'number', 'boolean')),
     team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW()
+    name TEXT NOT NULL,
+    data_type TAG_DATA_TYPE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT unique_tag_name UNIQUE (team_id, name)
 );
 
 -- below table is useful for predefined tag values (e.g., for dropdowns)
 CREATE TABLE IF NOT EXISTS tag_values (
     id SERIAL PRIMARY KEY,
-    value TEXT UNIQUE NOT NULL,
-    tag_type_id INTEGER NOT NULL REFERENCES tag_types(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW()
+    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    value TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT unique_tag_value UNIQUE (tag_id, value)
 );
 
-CREATE TABLE IF NOT EXISTS team_member_preferences (
+CREATE TABLE IF NOT EXISTS team_member_tags (
     id SERIAL PRIMARY KEY,
     team_membership_id INTEGER NOT NULL REFERENCES team_memberships(id) ON DELETE CASCADE,
-    tag_key TEXT NOT NULL REFERENCES tag_types(name) ON DELETE CASCADE,
-    tag_value TEXT NOT NULL REFERENCES tag_values(value) ON DELETE CASCADE,
+    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    tag_value_id INTEGER NOT NULL REFERENCES tag_values(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW(),
 
-    CONSTRAINT unique_team_member_preference UNIQUE (team_membership_id, tag_key)
+    CONSTRAINT unique_team_member_preference UNIQUE (team_membership_id, tag_id)
 );
 -- +goose StatementEnd
 
@@ -71,10 +76,13 @@ CREATE TABLE IF NOT EXISTS team_member_preferences (
 -- +goose StatementBegin
 DROP TABLE IF EXISTS team_member_preferences;
 DROP TABLE IF EXISTS tag_values;
-DROP TABLE IF EXISTS tag_types;
+DROP TABLE IF EXISTS tags;
+
+DROP TYPE IF EXISTS TAG_DATA_TYPE;
+
 DROP TABLE IF EXISTS team_memberships;
 DROP TABLE IF EXISTS teams;
-DROP TYPE IF EXISTS TEAM_ROLE;
+DROP TYPE IF EXISTS TEAM_USER_ROLE;
 
 DROP INDEX IF EXISTS idx_accounts_user_id;
 

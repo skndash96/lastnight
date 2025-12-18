@@ -7,41 +7,36 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/service"
 )
 
-type TeamHandler interface {
-	GetDefaultTeam(c echo.Context) error
-	JoinDefaultTeam(c echo.Context) error
-}
-
 type teamHandler struct {
 	teamSrv *service.TeamService
 }
 
-func NewTeamHandler(teamSrv *service.TeamService) TeamHandler {
+func NewTeamHandler(teamSrv *service.TeamService) *teamHandler {
 	return &teamHandler{
 		teamSrv: teamSrv,
 	}
 }
 
-// @Summary Get Default Team
+// @Summary Get Teams
 // @Tags Team
-// @Description Get the default team for the user
+// @Description Get the user's teams list
 // @Produce json
-// @Success default {object} dto.GetTeamResponse
+// @Success default {object} dto.GetTeamsResponse
 // @Failure default {object} dto.ErrorResponse
-// @Router /api/teams/default [get]
-func (h *teamHandler) GetDefaultTeam(c echo.Context) error {
+// @Router /api/teams [get]
+func (h *teamHandler) GetTeams(c echo.Context) error {
 	session, ok := auth.GetSession(c)
 	if !ok {
 		return echo.ErrUnauthorized
 	}
 
-	p, err := h.teamSrv.GetDefaultTeam(c.Request().Context(), session.Email)
+	ts, err := h.teamSrv.GetTeamsByUserID(c.Request().Context(), session.UserID)
 	if err != nil {
 		return err
 	}
 
-	c.JSON(200, &dto.GetTeamResponse{
-		Data: p,
+	c.JSON(200, &dto.GetTeamsResponse{
+		Data: ts,
 	})
 
 	return nil

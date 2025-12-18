@@ -20,25 +20,19 @@ func NewTeamService(p *pgxpool.Pool) *TeamService {
 	}
 }
 
-func (s *TeamService) GetDefaultTeam(ctx context.Context, userEmail string) (*db.Team, error) {
-	parts := strings.SplitN(strings.ToLower(userEmail), "@", 2)
-	if len(parts) != 2 {
-		return nil, NewSrvError(nil, SrvErrInvalidInput, "invalid email")
-	}
-
+func (s *TeamService) GetTeamsByUserID(ctx context.Context, userID int32) ([]db.GetTeamsByUserIDRow, error) {
 	teamRepo := repository.NewTeamRepository(s.db)
 
-	domain := parts[1]
-	team, err := teamRepo.GetTeamByDomain(ctx, domain)
+	teams, err := teamRepo.GetTeamsByUserID(ctx, userID)
 
 	if err != nil {
 		if helpers.IsNoRows(err) {
 			return nil, NewSrvError(nil, SrvErrNotFound, "team not found")
 		}
-		return nil, NewSrvError(err, SrvErrInternal, "failed to query team")
+		return nil, NewSrvError(err, SrvErrInternal, "failed to query teams")
 	}
 
-	return &team, nil
+	return teams, nil
 }
 
 // Do not expose this method outside of the service
@@ -59,9 +53,21 @@ func (s *TeamService) joinTeam(ctx context.Context, userID, teamID int32) (*db.T
 }
 
 func (s *TeamService) JoinDefaultTeam(ctx context.Context, userID int32, userEmail string) (*db.Team, error) {
-	team, err := s.GetDefaultTeam(ctx, userEmail)
+	parts := strings.SplitN(strings.ToLower(userEmail), "@", 2)
+	if len(parts) != 2 {
+		return nil, NewSrvError(nil, SrvErrInvalidInput, "invalid email")
+	}
+
+	teamRepo := repository.NewTeamRepository(s.db)
+
+	domain := parts[1]
+	team, err := teamRepo.GetTeamByDomain(ctx, domain)
+
 	if err != nil {
-		return nil, err
+		if helpers.IsNoRows(err) {
+			return nil, NewSrvError(nil, SrvErrNotFound, "team not found")
+		}
+		return nil, NewSrvError(err, SrvErrInternal, "failed to query team")
 	}
 
 	_, err = s.joinTeam(ctx, userID, team.ID)
@@ -69,5 +75,5 @@ func (s *TeamService) JoinDefaultTeam(ctx context.Context, userID int32, userEma
 		return nil, err
 	}
 
-	return team, nil
+	return &team, nil
 }
