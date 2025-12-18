@@ -106,6 +106,13 @@ type Account struct {
 	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
 }
 
+type Session struct {
+	ID     pgtype.UUID      `json:"id"`
+	UserID int32            `json:"user_id"`
+	Email  string           `json:"email"`
+	Expiry pgtype.Timestamp `json:"expiry"`
+}
+
 type Tag struct {
 	ID        int32            `json:"id"`
 	TeamID    int32            `json:"team_id"`

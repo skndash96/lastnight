@@ -28,12 +28,12 @@ func NewTagHandler(s *service.TagService) *tagHandler {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags [get]
 func (h *tagHandler) ListTags(c echo.Context) error {
-	data := new(dto.GetTagsRequest)
-	if err := c.Bind(data); err != nil {
+	v := new(dto.GetTagsRequest)
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	tags, err := h.tagSrv.ListTags(c.Request().Context(), data.TeamID)
+	tags, err := h.tagSrv.ListTags(c.Request().Context(), v.TeamID)
 	if err != nil {
 		return err
 	}
@@ -54,12 +54,12 @@ func (h *tagHandler) ListTags(c echo.Context) error {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID}/values [get]
 func (h *tagHandler) ListTagValues(c echo.Context) error {
-	data := new(dto.GetTagValuesRequest)
-	if err := c.Bind(data); err != nil {
+	v := new(dto.GetTagValuesRequest)
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	values, err := h.tagSrv.ListTagValues(c.Request().Context(), data.TagID)
+	values, err := h.tagSrv.ListTagValues(c.Request().Context(), v.TagID)
 	if err != nil {
 		return err
 	}
@@ -79,21 +79,21 @@ func (h *tagHandler) ListTagValues(c echo.Context) error {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags [post]
 func (h *tagHandler) CreateTag(c echo.Context) error {
-	data := new(dto.CreateTagRequest)
-	if err := c.Bind(data); err != nil {
+	v := new(dto.CreateTagRequest)
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	if err := c.Validate(data); err != nil {
+	if err := c.Validate(v); err != nil {
 		return err
 	}
 
-	tag, err := h.tagSrv.CreateTag(c.Request().Context(), data.TeamID, data.Name, data.DataType)
+	tag, err := h.tagSrv.CreateTag(c.Request().Context(), v.TeamID, v.Name, v.DataType)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, dto.CreateTagResponse{
+	return c.JSON(http.StatusCreated, dto.CreateTagResponse{
 		Data: tag,
 	})
 }
@@ -109,16 +109,16 @@ func (h *tagHandler) CreateTag(c echo.Context) error {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID} [put]
 func (h *tagHandler) UpdateTag(c echo.Context) error {
-	data := new(dto.UpdateTagRequest)
-	if err := c.Bind(data); err != nil {
+	v := new(dto.UpdateTagRequest)
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	if err := c.Validate(data); err != nil {
+	if err := c.Validate(v); err != nil {
 		return err
 	}
 
-	tag, err := h.tagSrv.UpdateTag(c.Request().Context(), data.TagID, data.Name)
+	tag, err := h.tagSrv.UpdateTag(c.Request().Context(), v.TagID, v.Name)
 	if err != nil {
 		return err
 	}
@@ -138,17 +138,17 @@ func (h *tagHandler) UpdateTag(c echo.Context) error {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID} [delete]
 func (h *tagHandler) DeleteTag(c echo.Context) error {
-	data := new(dto.DeleteTagRequest)
+	v := new(dto.DeleteTagRequest)
 
-	if err := c.Bind(data); err != nil {
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	if err := c.Validate(data); err != nil {
+	if err := c.Validate(v); err != nil {
 		return err
 	}
 
-	tag, err := h.tagSrv.DeleteTag(c.Request().Context(), data.TagID)
+	tag, err := h.tagSrv.DeleteTag(c.Request().Context(), v.TagID)
 	if err != nil {
 		return err
 	}
@@ -169,22 +169,22 @@ func (h *tagHandler) DeleteTag(c echo.Context) error {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID}/values [post]
 func (h *tagHandler) CreateTagValue(c echo.Context) error {
-	data := new(dto.CreateTagValueRequest)
+	v := new(dto.CreateTagValueRequest)
 
-	if err := c.Bind(data); err != nil {
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	if err := c.Validate(data); err != nil {
+	if err := c.Validate(v); err != nil {
 		return err
 	}
 
-	value, err := h.tagSrv.CreateTagValue(c.Request().Context(), data.TagID, data.Value)
+	value, err := h.tagSrv.CreateTagValue(c.Request().Context(), v.TagID, v.Value)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, dto.CreateTagValueResponse{
+	return c.JSON(http.StatusCreated, dto.CreateTagValueResponse{
 		Data: value,
 	})
 }
@@ -200,17 +200,17 @@ func (h *tagHandler) CreateTagValue(c echo.Context) error {
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID}/values/{valueID} [delete]
 func (h *tagHandler) DeleteTagValue(c echo.Context) error {
-	data := new(dto.DeleteTagValueRequest)
+	v := new(dto.DeleteTagValueRequest)
 
-	if err := c.Bind(data); err != nil {
+	if err := c.Bind(v); err != nil {
 		return err
 	}
 
-	if err := c.Validate(data); err != nil {
+	if err := c.Validate(v); err != nil {
 		return err
 	}
 
-	value, err := h.tagSrv.DeleteTagValue(c.Request().Context(), data.TagValueID)
+	value, err := h.tagSrv.DeleteTagValue(c.Request().Context(), v.TagValueID)
 	if err != nil {
 		return err
 	}

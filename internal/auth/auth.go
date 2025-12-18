@@ -1,18 +1,19 @@
 package auth
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"context"
 
-type AuthIdentity struct {
-	UserID int32  `json:"uid"`
-	Email  string `json:"email"`
-}
+	"github.com/skndash96/lastnight-backend/internal/db"
+)
 
-type AuthClaims struct {
-	AuthIdentity
-	jwt.RegisteredClaims
+type Actor struct {
+	Email  string
+	UserID int32
+	TeamID int32
+	Role   db.TeamUserRole
 }
 
 type TokenProvider interface {
-	GenerateToken(userID int32, email string) (string, error)
-	ParseToken(tokenStr string) (*AuthClaims, error)
+	GenerateToken(ctx context.Context, userID int32, email string) (string, error)
+	ValidateToken(ctx context.Context, token string) (*Actor, error)
 }

@@ -216,7 +216,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateTagRequest"
+                            "$ref": "#/definitions/dto.CreateTagBody"
                         }
                     }
                 ],
@@ -261,7 +261,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateTagRequest"
+                            "$ref": "#/definitions/dto.UpdateTagBody"
                         }
                     }
                 ],
@@ -367,6 +367,15 @@ const docTemplate = `{
                         "name": "tagID",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Value",
+                        "name": "value",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTagValueBody"
+                        }
                     }
                 ],
                 "responses": {
@@ -525,12 +534,11 @@ const docTemplate = `{
                 "TeamUserRoleMod"
             ]
         },
-        "dto.CreateTagRequest": {
+        "dto.CreateTagBody": {
             "type": "object",
             "required": [
                 "data_type",
-                "name",
-                "teamID"
+                "name"
             ],
             "properties": {
                 "data_type": {
@@ -546,9 +554,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 2
-                },
-                "teamID": {
-                    "type": "integer"
                 }
             }
         },
@@ -557,6 +562,19 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/db.Tag"
+                }
+            }
+        },
+        "dto.CreateTagValueBody": {
+            "type": "object",
+            "required": [
+                "value"
+            ],
+            "properties": {
+                "value": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
                 }
             }
         },
@@ -687,24 +705,16 @@ const docTemplate = `{
         "dto.RegisterResponse": {
             "type": "object"
         },
-        "dto.UpdateTagRequest": {
+        "dto.UpdateTagBody": {
             "type": "object",
             "required": [
-                "name",
-                "tagID",
-                "teamID"
+                "name"
             ],
             "properties": {
                 "name": {
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 2
-                },
-                "tagID": {
-                    "type": "integer"
-                },
-                "teamID": {
-                    "type": "integer"
                 }
             }
         },

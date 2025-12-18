@@ -15,13 +15,11 @@ type AppConfig struct {
 }
 
 type AuthConfig struct {
-	JWT    JWTConfig
-	Cookie CookieConfig
+	Session SessionConfig
+	Cookie  CookieConfig
 }
 
-type JWTConfig struct {
-	Issuer string
-	Secret []byte
+type SessionConfig struct {
 	Expiry time.Duration
 }
 
@@ -48,9 +46,7 @@ func New() *AppConfig {
 		DbURL:  GetEnv("GOOSE_DBSTRING", ""),
 
 		Auth: AuthConfig{
-			JWT: JWTConfig{
-				Issuer: "lastnight",
-				Secret: []byte(GetEnv("JWT_SECRET", "")),
+			Session: SessionConfig{
 				Expiry: time.Duration(14*24) * time.Hour,
 			},
 			Cookie: CookieConfig{

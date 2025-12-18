@@ -31,10 +31,9 @@ func NewAuthService(db *pgxpool.Pool, tokenProvider auth.TokenProvider) AuthServ
 }
 
 func (s *authService) Login(ctx context.Context, email, password string) (string, error) {
-	userRepo := repository.NewUserRepository(s.db)
-	accountRepo := repository.NewAccountRepository(s.db)
+	authRepo := repository.NewAuthRepository(s.db)
 
-	u, err := userRepo.GetUserByEmail(ctx, email)
+	u, err := authRepo.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", NewSrvError(err, SrvErrInvalidInput, "invalid credentials")
@@ -42,7 +41,7 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		return "", NewSrvError(err, SrvErrInternal, "something went wrong")
 	}
 
-	accounts, err := accountRepo.GetUserAccountsByID(ctx, u.ID)
+	accounts, err := authRepo.GetUserAccountsByID(ctx, u.ID)
 	if err != nil {
 		return "", NewSrvError(err, SrvErrInternal, "failed to get user accounts")
 	}
@@ -63,7 +62,7 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		return "", NewSrvError(err, SrvErrInvalidInput, "invalid credentials")
 	}
 
-	token, err := s.tokenProvider.GenerateToken(acc.UserID, u.Email)
+	token, err := s.tokenProvider.GenerateToken(ctx, acc.UserID, u.Email)
 	if err != nil {
 		return "", NewSrvError(err, SrvErrInternal, "failed to generate token")
 	}
@@ -83,10 +82,9 @@ func (s *authService) Register(ctx context.Context, name, email, password string
 	}
 	defer tx.Rollback(ctx)
 
-	userRepo := repository.NewUserRepository(tx)
-	accountRepo := repository.NewAccountRepository(tx)
+	authRepo := repository.NewAuthRepository(tx)
 
-	user, err := userRepo.CreateUser(ctx, name, email)
+	user, err := authRepo.CreateUser(ctx, name, email)
 	if err != nil {
 		if helpers.IsUniqueViolation(err) {
 			return "", NewSrvError(err, SrvErrInvalidInput, "email already in use")
@@ -94,7 +92,7 @@ func (s *authService) Register(ctx context.Context, name, email, password string
 		return "", NewSrvError(err, SrvErrInternal, "failed to create new user")
 	}
 
-	acc, err := accountRepo.CreateAccount(ctx, user.ID, "local", email, string(passwordHash))
+	acc, err := authRepo.CreateAccount(ctx, user.ID, "local", email, string(passwordHash))
 	if err != nil {
 		return "", NewSrvError(err, SrvErrInternal, "failed to create new account")
 	}
@@ -104,7 +102,7 @@ func (s *authService) Register(ctx context.Context, name, email, password string
 		return "", NewSrvError(err, SrvErrInternal, "failed to commit transaction")
 	}
 
-	token, err := s.tokenProvider.GenerateToken(acc.UserID, user.Email)
+	token, err := s.tokenProvider.GenerateToken(ctx, acc.UserID, user.Email)
 	if err != nil {
 		return "", NewSrvError(err, SrvErrInternal, "failed to generate token")
 	}

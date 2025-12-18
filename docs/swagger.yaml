@@ -67,7 +67,7 @@ definitions:
     x-enum-varnames:
     - TeamUserRoleMember
     - TeamUserRoleMod
-  dto.CreateTagRequest:
+  dto.CreateTagBody:
     properties:
       data_type:
         allOf:
@@ -78,17 +78,23 @@ definitions:
         maxLength: 100
         minLength: 2
         type: string
-      teamID:
-        type: integer
     required:
     - data_type
     - name
-    - teamID
     type: object
   dto.CreateTagResponse:
     properties:
       data:
         $ref: '#/definitions/db.Tag'
+    type: object
+  dto.CreateTagValueBody:
+    properties:
+      value:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - value
     type: object
   dto.CreateTagValueResponse:
     properties:
@@ -173,20 +179,14 @@ definitions:
     type: object
   dto.RegisterResponse:
     type: object
-  dto.UpdateTagRequest:
+  dto.UpdateTagBody:
     properties:
       name:
         maxLength: 100
         minLength: 2
         type: string
-      tagID:
-        type: integer
-      teamID:
-        type: integer
     required:
     - name
-    - tagID
-    - teamID
     type: object
   dto.UpdateTagResponse:
     properties:
@@ -338,7 +338,7 @@ paths:
         name: tag
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateTagRequest'
+          $ref: '#/definitions/dto.CreateTagBody'
       produces:
       - application/json
       responses:
@@ -391,7 +391,7 @@ paths:
         name: tag
         required: true
         schema:
-          $ref: '#/definitions/dto.UpdateTagRequest'
+          $ref: '#/definitions/dto.UpdateTagBody'
       produces:
       - application/json
       responses:
@@ -439,6 +439,12 @@ paths:
         name: tagID
         required: true
         type: string
+      - description: Value
+        in: body
+        name: value
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTagValueBody'
       produces:
       - application/json
       responses:

@@ -13,9 +13,12 @@ import (
 func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 	r := e.Group("/api")
 
-	jwtProvider := auth.NewJwtProvider(cfg.Auth.JWT)
+	authRepo := repository.NewAuthRepository(pool)
+	teamRepo := repository.NewTeamRepository(pool)
 
-	r.Use(auth.SessionMW(jwtProvider, cfg.Auth.Cookie))
+	sessionProvider := auth.NewSessionProvider(cfg.Auth.Session, authRepo)
+
+	r.Use(auth.SessionMW(sessionProvider, cfg.Auth.Cookie))
 
 	{
 		h := handler.NewHealthHandler()
@@ -24,7 +27,7 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 	}
 
 	{
-		authSrv := service.NewAuthService(pool, jwtProvider)
+		authSrv := service.NewAuthService(pool, sessionProvider)
 
 		h := handler.NewAuthHandler(cfg, authSrv)
 		g := r.Group("/auth")
@@ -34,8 +37,6 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 	}
 
 	{
-		teamRepo := repository.NewTeamRepository(pool)
-
 		teamSrv := service.NewTeamService(pool)
 		tagSrv := service.NewTagService(pool)
 

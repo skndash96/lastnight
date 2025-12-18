@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/skndash96/lastnight-backend/internal/auth"
 	"github.com/skndash96/lastnight-backend/internal/dto"
@@ -60,7 +62,7 @@ func (h *teamHandler) JoinDefaultTeam(c echo.Context) error {
 		return err
 	}
 
-	c.JSON(200, &dto.JoinTeamResponse{
+	c.JSON(http.StatusCreated, &dto.JoinTeamResponse{
 		Data: p,
 	})
 
