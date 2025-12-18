@@ -65,7 +65,6 @@ type DeleteTagValueRequest struct {
 }
 
 // ------ response ------
-
 type GetTagsResponse struct {
 	Data []db.Tag `json:"data"`
 }

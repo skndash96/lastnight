@@ -23,7 +23,7 @@ func NewTeamHandler(teamSrv *service.TeamService) *teamHandler {
 // @Tags Team
 // @Description Get the user's teams list
 // @Produce json
-// @Success default {object} dto.GetTeamsResponse
+// @Success 200 {object} dto.GetTeamsResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams [get]
 func (h *teamHandler) GetTeams(c echo.Context) error {
@@ -48,7 +48,7 @@ func (h *teamHandler) GetTeams(c echo.Context) error {
 // @Tags Team
 // @Description Join the default team for the user
 // @Produce json
-// @Success default {object} dto.JoinTeamResponse
+// @Success 201 {object} dto.JoinTeamResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/default [post]
 func (h *teamHandler) JoinDefaultTeam(c echo.Context) error {

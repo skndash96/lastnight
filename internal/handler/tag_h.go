@@ -24,7 +24,7 @@ func NewTagHandler(s *service.TagService) *tagHandler {
 // @Description Get the tags of a team
 // @Param teamID path string true "Team ID"
 // @Produce json
-// @Success default {object} dto.GetTagsResponse
+// @Success 200 {object} dto.GetTagsResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags [get]
 func (h *tagHandler) ListTags(c echo.Context) error {
@@ -50,7 +50,7 @@ func (h *tagHandler) ListTags(c echo.Context) error {
 // @Param teamID path string true "Team ID"
 // @Param tagID path string true "Tag ID"
 // @Produce json
-// @Success default {object} dto.GetTagValuesResponse
+// @Success 200 {object} dto.GetTagValuesResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID}/values [get]
 func (h *tagHandler) ListTagValues(c echo.Context) error {
@@ -75,7 +75,7 @@ func (h *tagHandler) ListTagValues(c echo.Context) error {
 // @Param teamID path string true "Team ID"
 // @Param tag body dto.CreateTagBody true "Tag"
 // @Produce json
-// @Success default {object} dto.CreateTagResponse
+// @Success 201 {object} dto.CreateTagResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags [post]
 func (h *tagHandler) CreateTag(c echo.Context) error {
@@ -105,7 +105,7 @@ func (h *tagHandler) CreateTag(c echo.Context) error {
 // @Param tagID path string true "Tag ID"
 // @Param tag body dto.UpdateTagBody true "Tag"
 // @Produce json
-// @Success default {object} dto.UpdateTagResponse
+// @Success 200 {object} dto.UpdateTagResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID} [put]
 func (h *tagHandler) UpdateTag(c echo.Context) error {
@@ -134,7 +134,7 @@ func (h *tagHandler) UpdateTag(c echo.Context) error {
 // @Param teamID path string true "Team ID"
 // @Param tagID path string true "Tag ID"
 // @Produce json
-// @Success default {object} dto.DeleteTagResponse
+// @Success 200 {object} dto.DeleteTagResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID} [delete]
 func (h *tagHandler) DeleteTag(c echo.Context) error {
@@ -165,7 +165,7 @@ func (h *tagHandler) DeleteTag(c echo.Context) error {
 // @Param tagID path string true "Tag ID"
 // @Param value body dto.CreateTagValueBody true "Value"
 // @Produce json
-// @Success default {object} dto.CreateTagValueResponse
+// @Success 201 {object} dto.CreateTagValueResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID}/values [post]
 func (h *tagHandler) CreateTagValue(c echo.Context) error {
@@ -196,7 +196,7 @@ func (h *tagHandler) CreateTagValue(c echo.Context) error {
 // @Param tagID path string true "Tag ID"
 // @Param valueID path string true "Value ID"
 // @Produce json
-// @Success default {object} dto.DeleteTagValueResponse
+// @Success 200 {object} dto.DeleteTagValueResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID}/values/{valueID} [delete]
 func (h *tagHandler) DeleteTagValue(c echo.Context) error {

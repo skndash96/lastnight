@@ -1,5 +1,5 @@
 package dto
 
 type ErrorResponse struct {
-	Message string `json:"message" example:"Email is required field"`
+	Message string `json:"message" example:"Something went wrong"`
 }

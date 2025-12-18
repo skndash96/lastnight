@@ -7,6 +7,7 @@ package db
 import (
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -97,63 +98,63 @@ func (ns NullTeamUserRole) Value() (driver.Value, error) {
 }
 
 type Account struct {
-	ID                int32            `json:"id"`
-	UserID            int32            `json:"user_id"`
-	Provider          string           `json:"provider"`
-	ProviderAccountID string           `json:"provider_account_id"`
-	Password          []byte           `json:"password"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
+	ID                int32     `json:"id"`
+	UserID            int32     `json:"user_id"`
+	Provider          string    `json:"provider"`
+	ProviderAccountID string    `json:"provider_account_id"`
+	Password          []byte    `json:"password"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 type Session struct {
-	ID     pgtype.UUID      `json:"id"`
-	UserID int32            `json:"user_id"`
-	Email  string           `json:"email"`
-	Expiry pgtype.Timestamp `json:"expiry"`
+	ID     pgtype.UUID `json:"id"`
+	UserID int32       `json:"user_id"`
+	Email  string      `json:"email"`
+	Expiry time.Time   `json:"expiry"`
 }
 
 type Tag struct {
-	ID        int32            `json:"id"`
-	TeamID    int32            `json:"team_id"`
-	Name      string           `json:"name"`
-	DataType  TagDataType      `json:"data_type"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int32       `json:"id"`
+	TeamID    int32       `json:"team_id"`
+	Name      string      `json:"name"`
+	DataType  TagDataType `json:"data_type"`
+	CreatedAt time.Time   `json:"created_at"`
 }
 
 type TagValue struct {
-	ID        int32            `json:"id"`
-	TagID     int32            `json:"tag_id"`
-	Value     string           `json:"value"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int32     `json:"id"`
+	TagID     int32     `json:"tag_id"`
+	Value     string    `json:"value"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Team struct {
-	ID        int32            `json:"id"`
-	Name      string           `json:"name"`
-	Domain    string           `json:"domain"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int32     `json:"id"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type TeamMemberTag struct {
-	ID               int32            `json:"id"`
-	TeamMembershipID int32            `json:"team_membership_id"`
-	TagID            int32            `json:"tag_id"`
-	TagValueID       int32            `json:"tag_value_id"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID               int32     `json:"id"`
+	TeamMembershipID int32     `json:"team_membership_id"`
+	TagID            int32     `json:"tag_id"`
+	TagValueID       int32     `json:"tag_value_id"`
+	CreatedAt        time.Time `json:"created_at"`
 }
 
 type TeamMembership struct {
-	ID       int32            `json:"id"`
-	TeamID   int32            `json:"team_id"`
-	UserID   int32            `json:"user_id"`
-	Role     TeamUserRole     `json:"role"`
-	JoinedAt pgtype.Timestamp `json:"joined_at"`
+	ID       int32        `json:"id"`
+	TeamID   int32        `json:"team_id"`
+	UserID   int32        `json:"user_id"`
+	Role     TeamUserRole `json:"role"`
+	JoinedAt time.Time    `json:"joined_at"`
 }
 
 type User struct {
-	ID        int32            `json:"id"`
-	Email     string           `json:"email"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	ID        int32     `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }

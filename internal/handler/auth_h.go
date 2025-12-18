@@ -29,7 +29,7 @@ func NewAuthHandler(appCfg *config.AppConfig, srv service.AuthService) *authHand
 // @Description Authenticates a user with email and password
 // @Param user body dto.LoginRequest true "Login credentials"
 // @Produce json
-// @Success default {object} dto.LoginResponse
+// @Success 200 {object} dto.LoginResponse
 // @Failure default	{object} dto.ErrorResponse
 // @Router /api/auth/login [post]
 func (h *authHandler) Login(c echo.Context) error {
@@ -61,7 +61,7 @@ func (h *authHandler) Login(c echo.Context) error {
 // @Description Registers a new user and returns an authentication token
 // @Param user body dto.RegisterRequest true "Register credentials"
 // @Produce json
-// @Success default {object} dto.RegisterResponse
+// @Success 200 {object} dto.RegisterResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/auth/register [post]
 func (h *authHandler) Register(c echo.Context) error {

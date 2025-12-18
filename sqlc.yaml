@@ -10,3 +10,24 @@ sql:
         out: "./internal/db"
         sql_package: "pgx/v5"
         emit_json_tags: true
+        overrides:
+          - db_type: "pg_catalog.timestamp"
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestampz"
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestamp"
+            nullable: false
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestampz"
+            nullable: false
+            go_type:
+              import: "time"
+              type: "Time"

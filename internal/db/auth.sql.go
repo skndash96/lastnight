@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -47,9 +48,9 @@ INSERT INTO sessions (user_id, email, expiry) VALUES ($1, $2, $3) RETURNING id, 
 `
 
 type CreateSessionParams struct {
-	UserID int32            `json:"user_id"`
-	Email  string           `json:"email"`
-	Expiry pgtype.Timestamp `json:"expiry"`
+	UserID int32     `json:"user_id"`
+	Email  string    `json:"email"`
+	Expiry time.Time `json:"expiry"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {

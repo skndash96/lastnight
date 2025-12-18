@@ -45,6 +45,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -96,6 +102,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -116,6 +128,12 @@ const docTemplate = `{
                 ],
                 "summary": "Healthcheck endpoint",
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.HealthResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -136,6 +154,12 @@ const docTemplate = `{
                 ],
                 "summary": "Get Teams",
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetTeamsResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -156,6 +180,12 @@ const docTemplate = `{
                 ],
                 "summary": "Join Default Team",
                 "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.JoinTeamResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -185,6 +215,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetTagsResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -221,6 +257,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTagResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -266,6 +308,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateTagResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -300,6 +348,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeleteTagResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -336,6 +390,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetTagValuesResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -379,6 +439,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTagValueResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -422,6 +488,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeleteTagValueResponse"
+                        }
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -449,7 +521,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_joined_at": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
+                    "type": "string"
                 },
                 "user_role": {
                     "$ref": "#/definitions/db.TeamUserRole"
@@ -460,7 +532,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
+                    "type": "string"
                 },
                 "data_type": {
                     "$ref": "#/definitions/db.TagDataType"
@@ -493,7 +565,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -510,7 +582,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
+                    "type": "string"
                 },
                 "domain": {
                     "type": "string"
@@ -607,7 +679,7 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string",
-                    "example": "Email is required field"
+                    "example": "Something went wrong"
                 }
             }
         },
@@ -723,35 +795,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/db.Tag"
-                }
-            }
-        },
-        "pgtype.InfinityModifier": {
-            "type": "integer",
-            "format": "int32",
-            "enum": [
-                1,
-                0,
-                -1
-            ],
-            "x-enum-varnames": [
-                "Infinity",
-                "Finite",
-                "NegativeInfinity"
-            ]
-        },
-        "pgtype.Timestamp": {
-            "type": "object",
-            "properties": {
-                "infinityModifier": {
-                    "$ref": "#/definitions/pgtype.InfinityModifier"
-                },
-                "time": {
-                    "description": "Time zone will be ignored when encoding to PostgreSQL.",
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
                 }
             }
         }

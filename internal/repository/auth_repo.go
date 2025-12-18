@@ -54,16 +54,10 @@ func (r *AuthRepository) GetSessionByID(ctx context.Context, id pgtype.UUID) (db
 }
 
 func (r *AuthRepository) CreateSession(ctx context.Context, userID int32, email string, expiry time.Time) (*db.Session, error) {
-	pgExpiry := pgtype.Timestamp{}
-	err := pgExpiry.Scan(expiry)
-	if err != nil {
-		return nil, err
-	}
-
 	session, err := r.q.CreateSession(ctx, db.CreateSessionParams{
 		UserID: userID,
 		Email:  email,
-		Expiry: pgtype.Timestamp{Time: expiry, InfinityModifier: pgtype.InfinityModifier(10), Valid: true},
+		Expiry: expiry,
 	})
 	if err != nil {
 		return nil, err

@@ -7,8 +7,7 @@ package db
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 const createTeamMembership = `-- name: CreateTeamMembership :one
@@ -88,12 +87,12 @@ SELECT
 `
 
 type GetTeamsByUserIDRow struct {
-	TeamID       int32            `json:"team_id"`
-	TeamName     string           `json:"team_name"`
-	TeamDomain   string           `json:"team_domain"`
-	MembershipID int32            `json:"membership_id"`
-	UserRole     TeamUserRole     `json:"user_role"`
-	UserJoinedAt pgtype.Timestamp `json:"user_joined_at"`
+	TeamID       int32        `json:"team_id"`
+	TeamName     string       `json:"team_name"`
+	TeamDomain   string       `json:"team_domain"`
+	MembershipID int32        `json:"membership_id"`
+	UserRole     TeamUserRole `json:"user_role"`
+	UserJoinedAt time.Time    `json:"user_joined_at"`
 }
 
 func (q *Queries) GetTeamsByUserID(ctx context.Context, userID int32) ([]GetTeamsByUserIDRow, error) {
