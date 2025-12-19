@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/skndash96/lastnight-backend/internal/db"
+import (
+	"github.com/skndash96/lastnight-backend/internal/db"
+)
 
 // TODO: Refactor DTO so that it does NOT contain any database-specific types
 
@@ -20,6 +22,13 @@ type TagValuePathParams struct {
 }
 
 // ------ body ------
+type UpdateFiltersBody struct {
+	Filters []struct {
+		KeyID   int32 `json:"key_id" validate:"required"`
+		ValueID int32 `json:"value_id" validate:"required"`
+	} `json:"filters" validate:"required"`
+}
+
 type CreateTagKeyBody struct {
 	Name     string         `json:"name" validate:"required,min=2,max=100"`
 	DataType db.TagDataType `json:"data_type" validate:"required,min=2,max=100"`
@@ -37,6 +46,11 @@ type CreateTagValueBody struct {
 // ------ request ------
 type ListFiltersRequest struct {
 	TeamPathParams
+}
+
+type UpdateFiltersRequest struct {
+	TeamPathParams
+	UpdateFiltersBody
 }
 
 type CreateTagKeyRequest struct {

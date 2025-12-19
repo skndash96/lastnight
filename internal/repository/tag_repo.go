@@ -29,10 +29,10 @@ func (r *TagRepo) ListFilters(ctx context.Context, membershipID int32) ([]db.Tag
 		tag.KeyID = t.KeyID
 		tag.Key = t.Key
 		if t.ValueID.Valid {
-			tag.ValueID = t.ValueID.Int32
+			tag.ValueID = &t.ValueID.Int32
 		}
 		if t.Value.Valid {
-			tag.Value = t.Value.String
+			tag.Value = &t.Value.String
 		}
 
 		err := json.Unmarshal(t.Options, &tag.Options)
@@ -43,6 +43,18 @@ func (r *TagRepo) ListFilters(ctx context.Context, membershipID int32) ([]db.Tag
 	}
 
 	return out, nil
+}
+
+func (r *TagRepo) CreateFilter(ctx context.Context, membershipID int32, tagID int32, tagValueID int32) error {
+	return r.q.CreateFilter(ctx, db.CreateFilterParams{
+		MembershipID: membershipID,
+		KeyID:        tagID,
+		ValueID:      tagValueID,
+	})
+}
+
+func (r *TagRepo) DeleteAllFilters(ctx context.Context, membershipID int32) error {
+	return r.q.DeleteAllFilters(ctx, membershipID)
 }
 
 func (r *TagRepo) CreateTagKey(ctx context.Context, teamID int32, tagName string, dataType db.TagDataType) (db.TagKey, error) {

@@ -11,6 +11,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createFilter = `-- name: CreateFilter :exec
+INSERT INTO member_filters (membership_id, key_id, value_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (membership_id, key_id) DO UPDATE SET value_id = $3
+`
+
+type CreateFilterParams struct {
+	MembershipID int32 `json:"membership_id"`
+	KeyID        int32 `json:"key_id"`
+	ValueID      int32 `json:"value_id"`
+}
+
+func (q *Queries) CreateFilter(ctx context.Context, arg CreateFilterParams) error {
+	_, err := q.db.Exec(ctx, createFilter, arg.MembershipID, arg.KeyID, arg.ValueID)
+	return err
+}
+
 const createTagKey = `-- name: CreateTagKey :one
 INSERT INTO tag_keys (team_id, name, data_type) VALUES ($1, $2, $3) RETURNING id, team_id, name, data_type, created_at
 `
@@ -53,6 +70,15 @@ func (q *Queries) CreateTagValue(ctx context.Context, arg CreateTagValueParams) 
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const deleteAllFilters = `-- name: DeleteAllFilters :exec
+DELETE FROM member_filters WHERE membership_id = $1
+`
+
+func (q *Queries) DeleteAllFilters(ctx context.Context, membershipID int32) error {
+	_, err := q.db.Exec(ctx, deleteAllFilters, membershipID)
+	return err
 }
 
 const deleteTagKey = `-- name: DeleteTagKey :one

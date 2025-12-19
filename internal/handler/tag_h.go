@@ -48,6 +48,39 @@ func (h *tagHandler) ListFilters(c echo.Context) error {
 	})
 }
 
+// @Summary Update Filters
+// @Description Update the filter tags
+// @Tags Tag
+// @Param teamID path string true "Team ID"
+// @Param filters body dto.UpdateFiltersBody true "Filters"
+// @Produce json
+// @Success 200
+// @Failure default {object} dto.ErrorResponse
+// @Router /api/teams/{teamID}/filters [put]
+func (h *tagHandler) UpdateFilters(c echo.Context) error {
+	v := new(dto.UpdateFiltersRequest)
+	if err := c.Bind(v); err != nil {
+		return err
+	}
+
+	session, ok := auth.GetSession(c)
+	if !ok {
+		return echo.ErrUnauthorized
+	}
+
+	var args [][]int32
+	for _, f := range v.Filters {
+		args = append(args, []int32{f.KeyID, f.ValueID})
+	}
+
+	err := h.tagSrv.UpdateFilters(c.Request().Context(), session.MembershipID, &args)
+	if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
 // @Summary New Tag Key
 // @Tags Tag
 // @Description Create a new tag key

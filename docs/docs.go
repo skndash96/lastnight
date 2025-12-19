@@ -46,10 +46,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.LoginResponse"
-                        }
+                        "description": "OK"
                     },
                     "default": {
                         "description": "",
@@ -71,6 +68,9 @@ const docTemplate = `{
                 ],
                 "summary": "Logout endpoint",
                 "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
                     "default": {
                         "description": "",
                         "schema": {
@@ -103,10 +103,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.RegisterResponse"
-                        }
+                        "description": "OK"
                     },
                     "default": {
                         "description": "",
@@ -220,6 +217,45 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ListFiltersResponse"
                         }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the filter tags",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Update Filters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Filters",
+                        "name": "filters",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateFiltersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "default": {
                         "description": "",
@@ -416,7 +452,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/teams/{teamID}/tags/{tagID}/values/{valueID}": {
+        "/api/teams/{teamID}/tags/{tagID}/values/{tagValueID}": {
             "delete": {
                 "description": "Delete a tag value",
                 "produces": [
@@ -732,12 +768,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.LoginResponse": {
-            "type": "object"
-        },
-        "dto.LogoutResponse": {
-            "type": "object"
-        },
         "dto.RegisterRequest": {
             "type": "object",
             "required": [
@@ -758,8 +788,35 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.RegisterResponse": {
-            "type": "object"
+        "dto.UpdateFiltersRequest": {
+            "type": "object",
+            "required": [
+                "filters",
+                "teamID"
+            ],
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "key_id",
+                            "value_id"
+                        ],
+                        "properties": {
+                            "key_id": {
+                                "type": "integer"
+                            },
+                            "value_id": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "teamID": {
+                    "type": "integer"
+                }
+            }
         },
         "dto.UpdateTagKeyBody": {
             "type": "object",

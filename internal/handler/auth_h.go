@@ -29,7 +29,7 @@ func NewAuthHandler(appCfg *config.AppConfig, srv service.AuthService) *authHand
 // @Description Authenticates a user with email and password
 // @Param user body dto.LoginRequest true "Login credentials"
 // @Produce json
-// @Success 200 {object} dto.LoginResponse
+// @Success 200
 // @Failure default	{object} dto.ErrorResponse
 // @Router /api/auth/login [post]
 func (h *authHandler) Login(c echo.Context) error {
@@ -51,7 +51,7 @@ func (h *authHandler) Login(c echo.Context) error {
 
 	c.SetCookie(auth.NewCookie(h.appCfg.Auth.Cookie, token))
 
-	c.JSON(http.StatusOK, dto.LoginResponse{})
+	c.NoContent(http.StatusOK)
 
 	return nil
 }
@@ -61,7 +61,7 @@ func (h *authHandler) Login(c echo.Context) error {
 // @Description Registers a new user and returns an authentication token
 // @Param user body dto.RegisterRequest true "Register credentials"
 // @Produce json
-// @Success 200 {object} dto.RegisterResponse
+// @Success 200
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/auth/register [post]
 func (h *authHandler) Register(c echo.Context) error {
@@ -81,7 +81,7 @@ func (h *authHandler) Register(c echo.Context) error {
 
 	c.SetCookie(auth.NewCookie(h.appCfg.Auth.Cookie, token))
 
-	c.JSON(http.StatusOK, dto.RegisterResponse{})
+	c.NoContent(http.StatusOK)
 
 	return nil
 }
@@ -90,7 +90,7 @@ func (h *authHandler) Register(c echo.Context) error {
 // @Tags Auth
 // @Description Logs out the current user by clearing the authentication token cookie
 // @Produce json
-// @Success default {object} dto.LogoutResponse
+// @Success 200
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/auth/logout [delete]
 func (h *authHandler) Logout(c echo.Context) error {
@@ -106,7 +106,7 @@ func (h *authHandler) Logout(c echo.Context) error {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	c.JSON(http.StatusOK, dto.LogoutResponse{})
+	c.NoContent(http.StatusOK)
 
 	return nil
 }

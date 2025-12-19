@@ -17,6 +17,14 @@ SELECT
   LEFT JOIN tag_values v ON v.key_id = k.id
   GROUP BY k.id, k.name, sv.id, sv.value;
 
+-- name: CreateFilter :exec
+INSERT INTO member_filters (membership_id, key_id, value_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (membership_id, key_id) DO UPDATE SET value_id = $3;
+
+-- name: DeleteAllFilters :exec
+DELETE FROM member_filters WHERE membership_id = $1;
+
 -- name: CreateTagKey :one
 INSERT INTO tag_keys (team_id, name, data_type) VALUES ($1, $2, $3) RETURNING *;
 

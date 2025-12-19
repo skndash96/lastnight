@@ -52,6 +52,7 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 		teamG.Use(auth.TeamMW(teamRepo))
 
 		teamG.GET("/filters", tag_h.ListFilters)
+		teamG.PUT("/filters", tag_h.UpdateFilters)
 
 		teamG.POST("/tags", tag_h.CreateTagKey)
 		teamG.PUT("/tags/:tagID", tag_h.UpdateTagKey)
