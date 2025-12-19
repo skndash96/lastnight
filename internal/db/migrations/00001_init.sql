@@ -40,49 +40,14 @@ CREATE TABLE IF NOT EXISTS team_memberships (
 
     CONSTRAINT unique_team_user UNIQUE (user_id) -- Ensures a user can only join a team once
 );
-
-CREATE TYPE TAG_DATA_TYPE AS ENUM ('string', 'number', 'boolean');
-
-CREATE TABLE IF NOT EXISTS tags (
-    id SERIAL PRIMARY KEY,
-    team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    data_type TAG_DATA_TYPE NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    CONSTRAINT unique_tag_name UNIQUE (team_id, name)
-);
-
--- below table is useful for predefined tag values (e.g., for dropdowns)
-CREATE TABLE IF NOT EXISTS tag_values (
-    id SERIAL PRIMARY KEY,
-    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    value TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    CONSTRAINT unique_tag_value UNIQUE (tag_id, value)
-);
-
-CREATE TABLE IF NOT EXISTS team_member_tags (
-    id SERIAL PRIMARY KEY,
-    team_membership_id INTEGER NOT NULL REFERENCES team_memberships(id) ON DELETE CASCADE,
-    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    tag_value_id INTEGER NOT NULL REFERENCES tag_values(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
-
-    CONSTRAINT unique_team_member_preference UNIQUE (team_membership_id, tag_id)
-);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS team_member_preferences;
-DROP TABLE IF EXISTS tag_values;
-DROP TABLE IF EXISTS tags;
-
-DROP TYPE IF EXISTS TAG_DATA_TYPE;
-
 DROP TABLE IF EXISTS team_memberships;
-DROP TABLE IF EXISTS teams;
 DROP TYPE IF EXISTS TEAM_USER_ROLE;
+
+DROP TABLE IF EXISTS teams;
 
 DROP INDEX IF EXISTS idx_accounts_user_id;
 

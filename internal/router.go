@@ -52,12 +52,12 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 		teamG.Use(auth.TeamMW(teamRepo))
 
 		teamG.GET("/tags", tag_h.ListTags)
-		teamG.POST("/tags", tag_h.CreateTag)
 
-		teamG.PUT("/tags/:tagID", tag_h.UpdateTag)
-		teamG.DELETE("/tags/:tagID", tag_h.DeleteTag)
+		teamG.POST("/tags", tag_h.CreateTagKey)
 
-		teamG.GET("/tags/:tagID/values", tag_h.ListTagValues)
+		teamG.PUT("/tags/:tagID", tag_h.UpdateTagKey)
+		teamG.DELETE("/tags/:tagID", tag_h.DeleteTagKey)
+
 		teamG.POST("/tags/:tagID/values", tag_h.CreateTagValue)
 		teamG.DELETE("/tags/:tagID/values", tag_h.DeleteTagValue)
 	}

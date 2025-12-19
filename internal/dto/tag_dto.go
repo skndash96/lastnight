@@ -20,18 +20,18 @@ type TagValuePathParams struct {
 }
 
 // ------ body ------
-type CreateTagBody struct {
+type CreateTagKeyBody struct {
 	Name     string         `json:"name" validate:"required,min=2,max=100"`
 	DataType db.TagDataType `json:"data_type" validate:"required,min=2,max=100"`
 }
 
-type CreateTagValueBody struct {
-	Value string `json:"value" validate:"required,min=2,max=100"`
-}
-
-type UpdateTagBody struct {
+type UpdateTagKeyBody struct {
 	Name string `json:"name" validate:"required,min=2,max=100"`
 	// data type NOT allowed
+}
+
+type CreateTagValueBody struct {
+	Value string `json:"value" validate:"required,min=2,max=100"`
 }
 
 // ------ request ------
@@ -39,21 +39,21 @@ type GetTagsRequest struct {
 	TeamPathParams
 }
 
-type GetTagValuesRequest struct {
-	TagPathParams
-}
-
-type CreateTagRequest struct {
+type CreateTagKeyRequest struct {
 	TeamPathParams
-	CreateTagBody
+	CreateTagKeyBody
 }
 
-type UpdateTagRequest struct {
+type UpdateTagKeyRequest struct {
 	TagPathParams
-	UpdateTagBody
+	UpdateTagKeyBody
 }
 
-type DeleteTagRequest struct {
+type DeleteTagKeyRequest struct {
+	TagPathParams
+}
+
+type GetTagValuesRequest struct {
 	TagPathParams
 }
 
@@ -71,20 +71,16 @@ type GetTagsResponse struct {
 	Data []db.Tag `json:"data"`
 }
 
-type GetTagValuesResponse struct {
-	Data []db.TagValue `json:"data"`
+type CreateTagKeyResponse struct {
+	Data *db.TagKey `json:"data"`
 }
 
-type CreateTagResponse struct {
-	Data *db.Tag `json:"data"`
+type UpdateTagKeyResponse struct {
+	Data *db.TagKey `json:"data"`
 }
 
-type UpdateTagResponse struct {
-	Data *db.Tag `json:"data"`
-}
-
-type DeleteTagResponse struct {
-	Data *db.Tag `json:"data"`
+type DeleteTagKeyResponse struct {
+	Data *db.TagKey `json:"data"`
 }
 
 type CreateTagValueResponse struct {

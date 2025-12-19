@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/skndash96/lastnight-backend/internal/auth"
 	"github.com/skndash96/lastnight-backend/internal/dto"
 	"github.com/skndash96/lastnight-backend/internal/service"
 )
@@ -18,8 +19,8 @@ func NewTagHandler(s *service.TagService) *tagHandler {
 	}
 }
 
-// GetTags retrieves the tags of a team.
-// @Summary Get Tags
+// GetTags retrieves the tag of a team.
+// @Summary Get Tag
 // @Tags Tag
 // @Description Get the tags of a team
 // @Param teamID path string true "Team ID"
@@ -33,7 +34,12 @@ func (h *tagHandler) ListTags(c echo.Context) error {
 		return err
 	}
 
-	tags, err := h.tagSrv.ListTags(c.Request().Context(), v.TeamID)
+	session, ok := auth.GetSession(c)
+	if !ok {
+		return echo.ErrUnauthorized
+	}
+
+	tags, err := h.tagSrv.ListTags(c.Request().Context(), session.MembershipID)
 	if err != nil {
 		return err
 	}
@@ -43,43 +49,17 @@ func (h *tagHandler) ListTags(c echo.Context) error {
 	})
 }
 
-// GetTagValues retrieves the values of a tag.
-// @Summary Get Tag Values
+// @Summary New Tag Key
 // @Tags Tag
-// @Description Get the values of a tag
+// @Description Create a new tag key
 // @Param teamID path string true "Team ID"
-// @Param tagID path string true "Tag ID"
+// @Param tag body dto.CreateTagKeyBody true "Tag"
 // @Produce json
-// @Success 200 {object} dto.GetTagValuesResponse
-// @Failure default {object} dto.ErrorResponse
-// @Router /api/teams/{teamID}/tags/{tagID}/values [get]
-func (h *tagHandler) ListTagValues(c echo.Context) error {
-	v := new(dto.GetTagValuesRequest)
-	if err := c.Bind(v); err != nil {
-		return err
-	}
-
-	values, err := h.tagSrv.ListTagValues(c.Request().Context(), v.TagID)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, dto.GetTagValuesResponse{
-		Data: values,
-	})
-}
-
-// @Summary New Tag
-// @Tags Tag
-// @Description Create a new tag
-// @Param teamID path string true "Team ID"
-// @Param tag body dto.CreateTagBody true "Tag"
-// @Produce json
-// @Success 201 {object} dto.CreateTagResponse
+// @Success 201 {object} dto.CreateTagKeyResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags [post]
-func (h *tagHandler) CreateTag(c echo.Context) error {
-	v := new(dto.CreateTagRequest)
+func (h *tagHandler) CreateTagKey(c echo.Context) error {
+	v := new(dto.CreateTagKeyRequest)
 	if err := c.Bind(v); err != nil {
 		return err
 	}
@@ -88,28 +68,28 @@ func (h *tagHandler) CreateTag(c echo.Context) error {
 		return err
 	}
 
-	tag, err := h.tagSrv.CreateTag(c.Request().Context(), v.TeamID, v.Name, v.DataType)
+	tag, err := h.tagSrv.CreateTagKey(c.Request().Context(), v.TeamID, v.Name, v.DataType)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusCreated, dto.CreateTagResponse{
+	return c.JSON(http.StatusCreated, dto.CreateTagKeyResponse{
 		Data: tag,
 	})
 }
 
-// @Summary Update Tag
+// @Summary Update Tag Key
 // @Tags Tag
-// @Description Update a tag
+// @Description Update a tag key
 // @Param teamID path string true "Team ID"
 // @Param tagID path string true "Tag ID"
-// @Param tag body dto.UpdateTagBody true "Tag"
+// @Param tag body dto.UpdateTagKeyBody true "Tag"
 // @Produce json
-// @Success 200 {object} dto.UpdateTagResponse
+// @Success 200 {object} dto.UpdateTagKeyResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID} [put]
-func (h *tagHandler) UpdateTag(c echo.Context) error {
-	v := new(dto.UpdateTagRequest)
+func (h *tagHandler) UpdateTagKey(c echo.Context) error {
+	v := new(dto.UpdateTagKeyRequest)
 	if err := c.Bind(v); err != nil {
 		return err
 	}
@@ -123,22 +103,22 @@ func (h *tagHandler) UpdateTag(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, dto.UpdateTagResponse{
+	return c.JSON(http.StatusOK, dto.UpdateTagKeyResponse{
 		Data: tag,
 	})
 }
 
-// @Summary Delete Tag
+// @Summary Delete Tag Key
 // @Tags Tag
-// @Description Delete a tag
+// @Description Delete a tag key
 // @Param teamID path string true "Team ID"
 // @Param tagID path string true "Tag ID"
 // @Produce json
-// @Success 200 {object} dto.DeleteTagResponse
+// @Success 200 {object} dto.DeleteTagKeyResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/tags/{tagID} [delete]
-func (h *tagHandler) DeleteTag(c echo.Context) error {
-	v := new(dto.DeleteTagRequest)
+func (h *tagHandler) DeleteTagKey(c echo.Context) error {
+	v := new(dto.DeleteTagKeyRequest)
 
 	if err := c.Bind(v); err != nil {
 		return err
@@ -148,12 +128,12 @@ func (h *tagHandler) DeleteTag(c echo.Context) error {
 		return err
 	}
 
-	tag, err := h.tagSrv.DeleteTag(c.Request().Context(), v.TagID)
+	tag, err := h.tagSrv.DeleteTagKey(c.Request().Context(), v.TagID)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, dto.DeleteTagResponse{
+	return c.JSON(http.StatusOK, dto.DeleteTagKeyResponse{
 		Data: tag,
 	})
 }

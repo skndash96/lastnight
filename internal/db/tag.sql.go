@@ -7,21 +7,23 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createTag = `-- name: CreateTag :one
-INSERT INTO tags (team_id, name, data_type) VALUES ($1, $2, $3) RETURNING id, team_id, name, data_type, created_at
+const createTagKey = `-- name: CreateTagKey :one
+INSERT INTO tag_keys (team_id, name, data_type) VALUES ($1, $2, $3) RETURNING id, team_id, name, data_type, created_at
 `
 
-type CreateTagParams struct {
+type CreateTagKeyParams struct {
 	TeamID   int32       `json:"team_id"`
 	Name     string      `json:"name"`
 	DataType TagDataType `json:"data_type"`
 }
 
-func (q *Queries) CreateTag(ctx context.Context, arg CreateTagParams) (Tag, error) {
-	row := q.db.QueryRow(ctx, createTag, arg.TeamID, arg.Name, arg.DataType)
-	var i Tag
+func (q *Queries) CreateTagKey(ctx context.Context, arg CreateTagKeyParams) (TagKey, error) {
+	row := q.db.QueryRow(ctx, createTagKey, arg.TeamID, arg.Name, arg.DataType)
+	var i TagKey
 	err := row.Scan(
 		&i.ID,
 		&i.TeamID,
@@ -33,33 +35,33 @@ func (q *Queries) CreateTag(ctx context.Context, arg CreateTagParams) (Tag, erro
 }
 
 const createTagValue = `-- name: CreateTagValue :one
-INSERT INTO tag_values (tag_id, value) VALUES ($1, $2) RETURNING id, tag_id, value, created_at
+INSERT INTO tag_values (key_id, value) VALUES ($1, $2) RETURNING id, key_id, value, created_at
 `
 
 type CreateTagValueParams struct {
-	TagID int32  `json:"tag_id"`
+	KeyID int32  `json:"key_id"`
 	Value string `json:"value"`
 }
 
 func (q *Queries) CreateTagValue(ctx context.Context, arg CreateTagValueParams) (TagValue, error) {
-	row := q.db.QueryRow(ctx, createTagValue, arg.TagID, arg.Value)
+	row := q.db.QueryRow(ctx, createTagValue, arg.KeyID, arg.Value)
 	var i TagValue
 	err := row.Scan(
 		&i.ID,
-		&i.TagID,
+		&i.KeyID,
 		&i.Value,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const deleteTag = `-- name: DeleteTag :one
-DELETE FROM tags WHERE id = $1 RETURNING id, team_id, name, data_type, created_at
+const deleteTagKey = `-- name: DeleteTagKey :one
+DELETE FROM tag_keys WHERE id = $1 RETURNING id, team_id, name, data_type, created_at
 `
 
-func (q *Queries) DeleteTag(ctx context.Context, id int32) (Tag, error) {
-	row := q.db.QueryRow(ctx, deleteTag, id)
-	var i Tag
+func (q *Queries) DeleteTagKey(ctx context.Context, id int32) (TagKey, error) {
+	row := q.db.QueryRow(ctx, deleteTagKey, id)
+	var i TagKey
 	err := row.Scan(
 		&i.ID,
 		&i.TeamID,
@@ -71,7 +73,7 @@ func (q *Queries) DeleteTag(ctx context.Context, id int32) (Tag, error) {
 }
 
 const deleteTagValue = `-- name: DeleteTagValue :one
-DELETE FROM tag_values WHERE id = $1 RETURNING id, tag_id, value, created_at
+DELETE FROM tag_values WHERE id = $1 RETURNING id, key_id, value, created_at
 `
 
 func (q *Queries) DeleteTagValue(ctx context.Context, id int32) (TagValue, error) {
@@ -79,61 +81,56 @@ func (q *Queries) DeleteTagValue(ctx context.Context, id int32) (TagValue, error
 	var i TagValue
 	err := row.Scan(
 		&i.ID,
-		&i.TagID,
+		&i.KeyID,
 		&i.Value,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const listTagValues = `-- name: ListTagValues :many
-SELECT id, tag_id, value, created_at FROM tag_values WHERE tag_id = $1
-`
-
-func (q *Queries) ListTagValues(ctx context.Context, tagID int32) ([]TagValue, error) {
-	rows, err := q.db.Query(ctx, listTagValues, tagID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []TagValue
-	for rows.Next() {
-		var i TagValue
-		if err := rows.Scan(
-			&i.ID,
-			&i.TagID,
-			&i.Value,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listTags = `-- name: ListTags :many
-SELECT id, team_id, name, data_type, created_at FROM tags WHERE team_id = $1
+SELECT
+  k.id AS key_id,
+  k.name AS key,
+  sv.id AS value_id,
+  sv.value AS value,
+  JSONB_AGG(
+    JSONB_BUILD_OBJECT(
+      'id', v.id,
+      'value', v.value
+    )
+    ORDER BY v.value
+  ) FILTER (WHERE v.id IS NOT NULL) AS options
+  FROM tag_keys k
+  LEFT JOIN team_member_tags tmt ON tmt.key_id = k.id AND tmt.membership_id = $1
+  LEFT JOIN tag_values sv ON sv.id = tmt.value_id
+  LEFT JOIN tag_values v ON v.key_id = k.id
+  GROUP BY k.id, k.name, sv.id, sv.value
 `
 
-func (q *Queries) ListTags(ctx context.Context, teamID int32) ([]Tag, error) {
-	rows, err := q.db.Query(ctx, listTags, teamID)
+type ListTagsRow struct {
+	KeyID   int32       `json:"key_id"`
+	Key     string      `json:"key"`
+	ValueID pgtype.Int4 `json:"value_id"`
+	Value   pgtype.Text `json:"value"`
+	Options []byte      `json:"options"`
+}
+
+func (q *Queries) ListTags(ctx context.Context, membershipID int32) ([]ListTagsRow, error) {
+	rows, err := q.db.Query(ctx, listTags, membershipID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Tag
+	var items []ListTagsRow
 	for rows.Next() {
-		var i Tag
+		var i ListTagsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.TeamID,
-			&i.Name,
-			&i.DataType,
-			&i.CreatedAt,
+			&i.KeyID,
+			&i.Key,
+			&i.ValueID,
+			&i.Value,
+			&i.Options,
 		); err != nil {
 			return nil, err
 		}
@@ -145,19 +142,19 @@ func (q *Queries) ListTags(ctx context.Context, teamID int32) ([]Tag, error) {
 	return items, nil
 }
 
-const updateTag = `-- name: UpdateTag :one
-UPDATE tags SET name = $2, data_type = $3 WHERE id = $1 RETURNING id, team_id, name, data_type, created_at
+const updateTagKey = `-- name: UpdateTagKey :one
+UPDATE tag_keys SET name = $2, data_type = $3 WHERE id = $1 RETURNING id, team_id, name, data_type, created_at
 `
 
-type UpdateTagParams struct {
+type UpdateTagKeyParams struct {
 	ID       int32       `json:"id"`
 	Name     string      `json:"name"`
 	DataType TagDataType `json:"data_type"`
 }
 
-func (q *Queries) UpdateTag(ctx context.Context, arg UpdateTagParams) (Tag, error) {
-	row := q.db.QueryRow(ctx, updateTag, arg.ID, arg.Name, arg.DataType)
-	var i Tag
+func (q *Queries) UpdateTagKey(ctx context.Context, arg UpdateTagKeyParams) (TagKey, error) {
+	row := q.db.QueryRow(ctx, updateTagKey, arg.ID, arg.Name, arg.DataType)
+	var i TagKey
 	err := row.Scan(
 		&i.ID,
 		&i.TeamID,

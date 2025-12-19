@@ -38,9 +38,9 @@ func ErrorHandler(err error, c echo.Context) {
 		msg = httpErr.Message.(string)
 	}
 
-	if code >= 500 {
-		c.Logger().Errorf("%T %v", err, err)
-	}
+	// if code >= 500 {
+	// 	c.Logger().Errorf("%T %v", err, err)
+	// }
 
 	c.JSON(code, &dto.ErrorResponse{
 		Message: msg,

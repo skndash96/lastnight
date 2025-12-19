@@ -204,7 +204,7 @@ const docTemplate = `{
                 "tags": [
                     "Tag"
                 ],
-                "summary": "Get Tags",
+                "summary": "Get Tag",
                 "parameters": [
                     {
                         "type": "string",
@@ -230,14 +230,14 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new tag",
+                "description": "Create a new tag key",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Tag"
                 ],
-                "summary": "New Tag",
+                "summary": "New Tag Key",
                 "parameters": [
                     {
                         "type": "string",
@@ -252,7 +252,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateTagBody"
+                            "$ref": "#/definitions/dto.CreateTagKeyBody"
                         }
                     }
                 ],
@@ -260,7 +260,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateTagResponse"
+                            "$ref": "#/definitions/dto.CreateTagKeyResponse"
                         }
                     },
                     "default": {
@@ -274,14 +274,14 @@ const docTemplate = `{
         },
         "/api/teams/{teamID}/tags/{tagID}": {
             "put": {
-                "description": "Update a tag",
+                "description": "Update a tag key",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Tag"
                 ],
-                "summary": "Update Tag",
+                "summary": "Update Tag Key",
                 "parameters": [
                     {
                         "type": "string",
@@ -303,7 +303,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateTagBody"
+                            "$ref": "#/definitions/dto.UpdateTagKeyBody"
                         }
                     }
                 ],
@@ -311,7 +311,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateTagResponse"
+                            "$ref": "#/definitions/dto.UpdateTagKeyResponse"
                         }
                     },
                     "default": {
@@ -323,14 +323,14 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a tag",
+                "description": "Delete a tag key",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Tag"
                 ],
-                "summary": "Delete Tag",
+                "summary": "Delete Tag Key",
                 "parameters": [
                     {
                         "type": "string",
@@ -351,7 +351,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DeleteTagResponse"
+                            "$ref": "#/definitions/dto.DeleteTagKeyResponse"
                         }
                     },
                     "default": {
@@ -364,46 +364,6 @@ const docTemplate = `{
             }
         },
         "/api/teams/{teamID}/tags/{tagID}/values": {
-            "get": {
-                "description": "Get the values of a tag",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tag"
-                ],
-                "summary": "Get Tag Values",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Team ID",
-                        "name": "teamID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tag ID",
-                        "name": "tagID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.GetTagValuesResponse"
-                        }
-                    },
-                    "default": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Create a new tag value",
                 "produces": [
@@ -531,6 +491,52 @@ const docTemplate = `{
         "db.Tag": {
             "type": "object",
             "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "key_id": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "value": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "value": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "value_id": {
+                    "type": "integer",
+                    "x-nullable": true
+                }
+            }
+        },
+        "db.TagDataType": {
+            "type": "string",
+            "enum": [
+                "string",
+                "number",
+                "boolean"
+            ],
+            "x-enum-varnames": [
+                "TagDataTypeString",
+                "TagDataTypeNumber",
+                "TagDataTypeBoolean"
+            ]
+        },
+        "db.TagKey": {
+            "type": "object",
+            "properties": {
                 "created_at": {
                     "type": "string"
                 },
@@ -548,19 +554,6 @@ const docTemplate = `{
                 }
             }
         },
-        "db.TagDataType": {
-            "type": "string",
-            "enum": [
-                "string",
-                "number",
-                "boolean"
-            ],
-            "x-enum-varnames": [
-                "TagDataTypeString",
-                "TagDataTypeNumber",
-                "TagDataTypeBoolean"
-            ]
-        },
         "db.TagValue": {
             "type": "object",
             "properties": {
@@ -570,7 +563,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "tag_id": {
+                "key_id": {
                     "type": "integer"
                 },
                 "value": {
@@ -606,7 +599,7 @@ const docTemplate = `{
                 "TeamUserRoleMod"
             ]
         },
-        "dto.CreateTagBody": {
+        "dto.CreateTagKeyBody": {
             "type": "object",
             "required": [
                 "data_type",
@@ -629,11 +622,11 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateTagResponse": {
+        "dto.CreateTagKeyResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/db.Tag"
+                    "$ref": "#/definitions/db.TagKey"
                 }
             }
         },
@@ -658,11 +651,11 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.DeleteTagResponse": {
+        "dto.DeleteTagKeyResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/db.Tag"
+                    "$ref": "#/definitions/db.TagKey"
                 }
             }
         },
@@ -680,17 +673,6 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Something went wrong"
-                }
-            }
-        },
-        "dto.GetTagValuesResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/db.TagValue"
-                    }
                 }
             }
         },
@@ -777,7 +759,7 @@ const docTemplate = `{
         "dto.RegisterResponse": {
             "type": "object"
         },
-        "dto.UpdateTagBody": {
+        "dto.UpdateTagKeyBody": {
             "type": "object",
             "required": [
                 "name"
@@ -790,11 +772,11 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateTagResponse": {
+        "dto.UpdateTagKeyResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/db.Tag"
+                    "$ref": "#/definitions/db.TagKey"
                 }
             }
         }

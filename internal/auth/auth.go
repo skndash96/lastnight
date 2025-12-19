@@ -7,10 +7,11 @@ import (
 )
 
 type Actor struct {
-	Email  string
-	UserID int32
-	TeamID int32
-	Role   db.TeamUserRole
+	Email        string
+	UserID       int32
+	TeamID       int32
+	MembershipID int32
+	Role         db.TeamUserRole
 }
 
 type TokenProvider interface {

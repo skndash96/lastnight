@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	user_id INTEGER NOT NULL REFERENCES users(id),
 	email TEXT NOT NULL,
@@ -10,5 +10,5 @@ CREATE TABLE sessions (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE sessions;
+DROP TABLE IF EXISTS sessions;
 -- +goose StatementEnd

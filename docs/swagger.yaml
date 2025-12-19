@@ -16,16 +16,25 @@ definitions:
     type: object
   db.Tag:
     properties:
-      created_at:
+      key:
         type: string
-      data_type:
-        $ref: '#/definitions/db.TagDataType'
-      id:
+      key_id:
         type: integer
-      name:
+      options:
+        items:
+          properties:
+            id:
+              type: integer
+            value:
+              type: string
+          type: object
+        type: array
+      value:
         type: string
-      team_id:
+        x-nullable: true
+      value_id:
         type: integer
+        x-nullable: true
     type: object
   db.TagDataType:
     enum:
@@ -37,13 +46,26 @@ definitions:
     - TagDataTypeString
     - TagDataTypeNumber
     - TagDataTypeBoolean
+  db.TagKey:
+    properties:
+      created_at:
+        type: string
+      data_type:
+        $ref: '#/definitions/db.TagDataType'
+      id:
+        type: integer
+      name:
+        type: string
+      team_id:
+        type: integer
+    type: object
   db.TagValue:
     properties:
       created_at:
         type: string
       id:
         type: integer
-      tag_id:
+      key_id:
         type: integer
       value:
         type: string
@@ -67,7 +89,7 @@ definitions:
     x-enum-varnames:
     - TeamUserRoleMember
     - TeamUserRoleMod
-  dto.CreateTagBody:
+  dto.CreateTagKeyBody:
     properties:
       data_type:
         allOf:
@@ -82,10 +104,10 @@ definitions:
     - data_type
     - name
     type: object
-  dto.CreateTagResponse:
+  dto.CreateTagKeyResponse:
     properties:
       data:
-        $ref: '#/definitions/db.Tag'
+        $ref: '#/definitions/db.TagKey'
     type: object
   dto.CreateTagValueBody:
     properties:
@@ -101,10 +123,10 @@ definitions:
       data:
         $ref: '#/definitions/db.TagValue'
     type: object
-  dto.DeleteTagResponse:
+  dto.DeleteTagKeyResponse:
     properties:
       data:
-        $ref: '#/definitions/db.Tag'
+        $ref: '#/definitions/db.TagKey'
     type: object
   dto.DeleteTagValueResponse:
     properties:
@@ -116,13 +138,6 @@ definitions:
       message:
         example: Something went wrong
         type: string
-    type: object
-  dto.GetTagValuesResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/db.TagValue'
-        type: array
     type: object
   dto.GetTagsResponse:
     properties:
@@ -179,7 +194,7 @@ definitions:
     type: object
   dto.RegisterResponse:
     type: object
-  dto.UpdateTagBody:
+  dto.UpdateTagKeyBody:
     properties:
       name:
         maxLength: 100
@@ -188,10 +203,10 @@ definitions:
     required:
     - name
     type: object
-  dto.UpdateTagResponse:
+  dto.UpdateTagKeyResponse:
     properties:
       data:
-        $ref: '#/definitions/db.Tag'
+        $ref: '#/definitions/db.TagKey'
     type: object
 info:
   contact:
@@ -321,11 +336,11 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get Tags
+      summary: Get Tag
       tags:
       - Tag
     post:
-      description: Create a new tag
+      description: Create a new tag key
       parameters:
       - description: Team ID
         in: path
@@ -337,24 +352,24 @@ paths:
         name: tag
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateTagBody'
+          $ref: '#/definitions/dto.CreateTagKeyBody'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.CreateTagResponse'
+            $ref: '#/definitions/dto.CreateTagKeyResponse'
         default:
           description: ""
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: New Tag
+      summary: New Tag Key
       tags:
       - Tag
   /api/teams/{teamID}/tags/{tagID}:
     delete:
-      description: Delete a tag
+      description: Delete a tag key
       parameters:
       - description: Team ID
         in: path
@@ -372,16 +387,16 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DeleteTagResponse'
+            $ref: '#/definitions/dto.DeleteTagKeyResponse'
         default:
           description: ""
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Delete Tag
+      summary: Delete Tag Key
       tags:
       - Tag
     put:
-      description: Update a tag
+      description: Update a tag key
       parameters:
       - description: Team ID
         in: path
@@ -398,49 +413,22 @@ paths:
         name: tag
         required: true
         schema:
-          $ref: '#/definitions/dto.UpdateTagBody'
+          $ref: '#/definitions/dto.UpdateTagKeyBody'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.UpdateTagResponse'
+            $ref: '#/definitions/dto.UpdateTagKeyResponse'
         default:
           description: ""
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Update Tag
+      summary: Update Tag Key
       tags:
       - Tag
   /api/teams/{teamID}/tags/{tagID}/values:
-    get:
-      description: Get the values of a tag
-      parameters:
-      - description: Team ID
-        in: path
-        name: teamID
-        required: true
-        type: string
-      - description: Tag ID
-        in: path
-        name: tagID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.GetTagValuesResponse'
-        default:
-          description: ""
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get Tag Values
-      tags:
-      - Tag
     post:
       description: Create a new tag value
       parameters:

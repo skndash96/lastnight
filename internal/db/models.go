@@ -114,7 +114,7 @@ type Session struct {
 	Expiry time.Time   `json:"expiry"`
 }
 
-type Tag struct {
+type TagKey struct {
 	ID        int32       `json:"id"`
 	TeamID    int32       `json:"team_id"`
 	Name      string      `json:"name"`
@@ -124,7 +124,7 @@ type Tag struct {
 
 type TagValue struct {
 	ID        int32     `json:"id"`
-	TagID     int32     `json:"tag_id"`
+	KeyID     int32     `json:"key_id"`
 	Value     string    `json:"value"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -137,11 +137,11 @@ type Team struct {
 }
 
 type TeamMemberTag struct {
-	ID               int32     `json:"id"`
-	TeamMembershipID int32     `json:"team_membership_id"`
-	TagID            int32     `json:"tag_id"`
-	TagValueID       int32     `json:"tag_value_id"`
-	CreatedAt        time.Time `json:"created_at"`
+	ID           int32     `json:"id"`
+	MembershipID int32     `json:"membership_id"`
+	KeyID        int32     `json:"key_id"`
+	ValueID      int32     `json:"value_id"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type TeamMembership struct {

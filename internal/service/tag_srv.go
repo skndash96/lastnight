@@ -19,27 +19,18 @@ func NewTagService(p *pgxpool.Pool) *TagService {
 	}
 }
 
-func (s *TagService) ListTags(ctx context.Context, teamID int32) ([]db.Tag, error) {
+func (s *TagService) ListTags(ctx context.Context, membershipID int32) ([]db.Tag, error) {
 	tagRepo := repository.NewTagRepo(s.db)
-	tags, err := tagRepo.ListTags(ctx, teamID)
+	tags, err := tagRepo.ListTags(ctx, membershipID)
 	if err != nil {
 		return nil, err
 	}
 	return tags, nil
 }
 
-func (s *TagService) ListTagValues(ctx context.Context, tagID int32) ([]db.TagValue, error) {
-	tagValueRepo := repository.NewTagRepo(s.db)
-	tagValues, err := tagValueRepo.ListTagValues(ctx, tagID)
-	if err != nil {
-		return nil, err
-	}
-	return tagValues, nil
-}
-
-func (s *TagService) CreateTag(ctx context.Context, teamID int32, name string, dataType db.TagDataType) (*db.Tag, error) {
+func (s *TagService) CreateTagKey(ctx context.Context, teamID int32, name string, dataType db.TagDataType) (*db.TagKey, error) {
 	tagRepo := repository.NewTagRepo(s.db)
-	tag, err := tagRepo.CreateTag(ctx, teamID, name, dataType)
+	tag, err := tagRepo.CreateTagKey(ctx, teamID, name, dataType)
 	if err != nil {
 		if helpers.IsUniqueViolation(err) {
 			return nil, NewSrvError(err, SrvErrInvalidInput, "tag value already exists")
@@ -61,9 +52,9 @@ func (s *TagService) CreateTagValue(ctx context.Context, tagID int32, value stri
 	return &tagValue, nil
 }
 
-func (s *TagService) UpdateTag(ctx context.Context, tagID int32, name string) (*db.Tag, error) {
+func (s *TagService) UpdateTag(ctx context.Context, tagID int32, name string) (*db.TagKey, error) {
 	tagRepo := repository.NewTagRepo(s.db)
-	tag, err := tagRepo.UpdateTag(ctx, tagID, name)
+	tag, err := tagRepo.UpdateTagKey(ctx, tagID, name)
 	if err != nil {
 		if helpers.IsUniqueViolation(err) {
 			return nil, NewSrvError(err, SrvErrInvalidInput, "tag value already exists")
@@ -73,9 +64,9 @@ func (s *TagService) UpdateTag(ctx context.Context, tagID int32, name string) (*
 	return &tag, nil
 }
 
-func (s *TagService) DeleteTag(ctx context.Context, tagID int32) (*db.Tag, error) {
+func (s *TagService) DeleteTagKey(ctx context.Context, tagID int32) (*db.TagKey, error) {
 	tagRepo := repository.NewTagRepo(s.db)
-	tag, err := tagRepo.DeleteTag(ctx, tagID)
+	tag, err := tagRepo.DeleteTagKey(ctx, tagID)
 	if err != nil {
 		return nil, err
 	}

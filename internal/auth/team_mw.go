@@ -29,6 +29,7 @@ func TeamMW(teamRepo *repository.TeamRepository) echo.MiddlewareFunc {
 				return echo.ErrInternalServerError
 			}
 
+			identity.MembershipID = tm.ID
 			identity.TeamID = tm.TeamID
 			identity.Role = tm.Role
 
