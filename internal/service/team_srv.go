@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/skndash96/lastnight-backend/internal/db"
-	"github.com/skndash96/lastnight-backend/internal/helpers"
 	"github.com/skndash96/lastnight-backend/internal/repository"
 )
 
@@ -26,7 +27,7 @@ func (s *TeamService) GetTeamsByUserID(ctx context.Context, userID int32) ([]db.
 	teams, err := teamRepo.GetTeamsByUserID(ctx, userID)
 
 	if err != nil {
-		if helpers.IsNoRows(err) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, NewSrvError(nil, SrvErrNotFound, "team not found")
 		}
 		return nil, NewSrvError(err, SrvErrInternal, "failed to query teams")
@@ -43,10 +44,7 @@ func (s *TeamService) joinTeam(ctx context.Context, userID, teamID int32) (*db.T
 	tm, err := teamRepo.CreateTeamMembership(ctx, userID, teamID, db.TeamUserRoleMember)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key") {
-			return nil, NewSrvError(nil, SrvErrConflict, "user already in team")
-		}
-		return nil, NewSrvError(err, SrvErrInternal, "failed to join team")
+		return nil, err
 	}
 
 	return &tm, nil
@@ -64,7 +62,7 @@ func (s *TeamService) JoinDefaultTeam(ctx context.Context, userID int32, userEma
 	team, err := teamRepo.GetTeamByDomain(ctx, domain)
 
 	if err != nil {
-		if helpers.IsNoRows(err) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, NewSrvError(nil, SrvErrNotFound, "team not found")
 		}
 		return nil, NewSrvError(err, SrvErrInternal, "failed to find team")

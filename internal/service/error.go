@@ -1,5 +1,11 @@
 package service
 
+import (
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
 type SrvError struct {
 	internal error
 	Kind     SrvErrKind
@@ -17,10 +23,33 @@ func (e *SrvError) Unwrap() error {
 }
 
 func NewSrvError(err error, kind SrvErrKind, message string) *SrvError {
+	var pgErr *pgconn.PgError
+
+	if ok := errors.As(err, &pgErr); ok {
+		return mapPgErrToSrvError(pgErr)
+	}
+
 	return &SrvError{
 		internal: err,
 		Kind:     kind,
 		Message:  message,
+	}
+}
+
+func mapPgErrToSrvError(err *pgconn.PgError) *SrvError {
+	switch err.Code {
+	case "23505", "23503":
+		return &SrvError{
+			internal: err,
+			Kind:     SrvErrConflict,
+			Message:  "conflicting values",
+		}
+	default:
+		return &SrvError{
+			internal: err,
+			Kind:     SrvErrInternal,
+			Message:  "unknown error",
+		}
 	}
 }
 

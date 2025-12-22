@@ -1,10 +1,11 @@
 package auth
 
 import (
+	"errors"
 	"strconv"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/skndash96/lastnight-backend/internal/helpers"
 	"github.com/skndash96/lastnight-backend/internal/repository"
 )
 
@@ -23,7 +24,7 @@ func TeamMW(teamRepo *repository.TeamRepository) echo.MiddlewareFunc {
 
 			tm, err := teamRepo.GetTeamMembershipByUserID(c.Request().Context(), identity.UserID, int32(teamID))
 			if err != nil {
-				if helpers.IsNoRows(err) {
+				if errors.Is(err, pgx.ErrNoRows) {
 					return echo.ErrForbidden
 				}
 				return echo.ErrInternalServerError

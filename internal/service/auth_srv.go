@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/skndash96/lastnight-backend/internal/auth"
 	"github.com/skndash96/lastnight-backend/internal/db"
-	"github.com/skndash96/lastnight-backend/internal/helpers"
 	"github.com/skndash96/lastnight-backend/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -86,10 +85,7 @@ func (s *authService) Register(ctx context.Context, name, email, password string
 
 	user, err := authRepo.CreateUser(ctx, name, email)
 	if err != nil {
-		if helpers.IsUniqueViolation(err) {
-			return "", NewSrvError(err, SrvErrInvalidInput, "email already in use")
-		}
-		return "", NewSrvError(err, SrvErrInternal, "failed to create new user")
+		return "", err
 	}
 
 	acc, err := authRepo.CreateAccount(ctx, user.ID, "local", email, string(passwordHash))

@@ -5,7 +5,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/skndash96/lastnight-backend/internal/db"
-	"github.com/skndash96/lastnight-backend/internal/helpers"
 	"github.com/skndash96/lastnight-backend/internal/repository"
 )
 
@@ -60,10 +59,7 @@ func (s *TagService) CreateTagKey(ctx context.Context, teamID int32, name string
 	tagRepo := repository.NewTagRepo(s.db)
 	tag, err := tagRepo.CreateTagKey(ctx, teamID, name, dataType)
 	if err != nil {
-		if helpers.IsUniqueViolation(err) {
-			return nil, NewSrvError(err, SrvErrInvalidInput, "tag value already exists")
-		}
-		return nil, NewSrvError(err, SrvErrInternal, "failed to create tag key")
+		return nil, err
 	}
 	return &tag, nil
 }
@@ -72,10 +68,7 @@ func (s *TagService) UpdateTagKey(ctx context.Context, tagID int32, name string)
 	tagRepo := repository.NewTagRepo(s.db)
 	tag, err := tagRepo.UpdateTagKey(ctx, tagID, name)
 	if err != nil {
-		if helpers.IsUniqueViolation(err) {
-			return nil, NewSrvError(err, SrvErrInvalidInput, "tag value already exists")
-		}
-		return nil, NewSrvError(err, SrvErrInternal, "failed to update tag key")
+		return nil, err
 	}
 	return &tag, nil
 }
@@ -93,10 +86,7 @@ func (s *TagService) CreateTagValue(ctx context.Context, tagID int32, value stri
 	tagValueRepo := repository.NewTagRepo(s.db)
 	tagValue, err := tagValueRepo.CreateTagValue(ctx, tagID, value)
 	if err != nil {
-		if helpers.IsUniqueViolation(err) {
-			return nil, NewSrvError(err, SrvErrInvalidInput, "tag value already exists")
-		}
-		return nil, NewSrvError(err, SrvErrInternal, "failed to create tag value")
+		return nil, err
 	}
 	return &tagValue, nil
 }

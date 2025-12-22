@@ -7,6 +7,16 @@ services:
       - .env
     ports:
       - "5432:5432"
+
+  redis:
+    image: redis:7.2-alpine
+    env_file:
+      - .env
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
   pgadmin:
     image: dpage/pgadmin4:8.4
     env_file:
