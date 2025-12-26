@@ -9,25 +9,38 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/skndash96/lastnight-backend/internal/db"
 	"github.com/skndash96/lastnight-backend/internal/provider"
+	"github.com/skndash96/lastnight-backend/internal/queue"
 	"github.com/skndash96/lastnight-backend/internal/repository"
 )
 
 type UploadService struct {
 	pool           *pgxpool.Pool
 	uploadProvider provider.UploadProvider
+	ingestionQ     *queue.IngestionQ
 }
 
-func NewUploadService(uploadProvider provider.UploadProvider, pool *pgxpool.Pool) *UploadService {
+func NewUploadService(uploadProvider provider.UploadProvider, pool *pgxpool.Pool, ingestionQ *queue.IngestionQ) *UploadService {
 	return &UploadService{
 		pool:           pool,
 		uploadProvider: uploadProvider,
+		ingestionQ:     ingestionQ,
 	}
 }
 
 type PresignUploadResult struct {
 	Url    *url.URL
 	Fields map[string]string
+}
+
+func (s *UploadService) GetUploadRef(ctx context.Context, id int32) (*db.GetUploadRefRow, error) {
+	uploadRepo := repository.NewUploadRepository(s.pool)
+	ref, err := uploadRepo.GetUploadRef(ctx, id)
+	if err != nil {
+		return nil, NewSrvError(err, SrvErrInternal, "Failed to get upload reference")
+	}
+	return ref, nil
 }
 
 func (s *UploadService) PresignUpload(ctx context.Context, teamID int32, name, mimeType string, size int64) (*PresignUploadResult, error) {
@@ -55,6 +68,7 @@ func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, 
 	if err != nil {
 		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to get upload info for %s", tmpKey))
 	}
+	// TODO: Validate blob
 
 	newKey := convertTmpKey(tmpKey)
 	if newKey == "" {
@@ -75,6 +89,8 @@ func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, 
 		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload for %s", newKey))
 	}
 
+	// TODO: Add constraint UNIQUE (upload_id, team_id, user_id, name)
+	// or idempotency in this route
 	uploadRef, err := uploadRepo.CreateUploadRef(ctx, upload.ID, teamID, userID, name)
 	if err != nil {
 		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload reference for %s", newKey))
@@ -96,15 +112,25 @@ func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, 
 			// it's not a fatal error, so we can continue
 			fmt.Printf("failed to delete duplicate upload %s: %v\n", tmpKey, err)
 		}
-	} else {
-		// TODO: Retry worker
-		err = s.uploadProvider.MoveObject(ctx, newKey, tmpKey)
-		if err != nil {
-			fmt.Printf("FATAL: failed to move upload from %s to %s: %v\n", tmpKey, newKey, err)
-		}
+
+		return nil
 	}
 
-	// TODO: push to queue
+	err = s.uploadProvider.MoveObject(ctx, newKey, tmpKey)
+	if err != nil {
+		// TODO: Retry and Failure handling
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to move upload from %s to %s", tmpKey, newKey))
+	}
+
+	job := &queue.IngestionJob{
+		ID:    upload.ID,
+		RefID: uploadRef.ID,
+	}
+
+	if err := s.ingestionQ.Enqueue(ctx, job); err != nil {
+		// TODO: Retry and Failure handling
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to start ingest job for %s", upload.StorageKey))
+	}
 
 	return nil
 }

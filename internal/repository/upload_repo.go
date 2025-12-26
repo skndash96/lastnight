@@ -29,6 +29,14 @@ func (r *uploadRepository) GetOrCreateUpload(ctx context.Context, key, mimeType 
 	return &upload, nil
 }
 
+func (r *uploadRepository) GetUploadRef(ctx context.Context, id int32) (*db.GetUploadRefRow, error) {
+	ref, err := r.q.GetUploadRef(ctx, id)
+	if err != nil {
+		return nil, NewRepoError(err, RepoErrInternal, "Failed to get upload reference")
+	}
+	return &ref, nil
+}
+
 func (r *uploadRepository) CreateUploadRef(ctx context.Context, uploadID int32, teamID int32, userID int32, name string) (*db.UploadRef, error) {
 	ref, err := r.q.CreateUploadRef(ctx, db.CreateUploadRefParams{
 		FileName:   name,

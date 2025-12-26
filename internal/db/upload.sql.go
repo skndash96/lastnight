@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUploadRef = `-- name: CreateUploadRef :one
@@ -70,7 +72,7 @@ func (q *Queries) DeleteAllUploadRefTags(ctx context.Context, uploadRefID int32)
 const getOrCreateUpload = `-- name: GetOrCreateUpload :one
 INSERT INTO uploads (storage_key, file_sha256, file_size, file_mime_type)
 VALUES ($1, $2, $3, $4)
-ON CONFLICT (file_sha256, file_size) DO NOTHING
+ON CONFLICT (file_sha256, file_size) DO UPDATE SET storage_key = uploads.storage_key
 RETURNING id, storage_key, file_sha256, file_size, file_mime_type, created_at, (xmax = 0) as created
 `
 
@@ -107,6 +109,51 @@ func (q *Queries) GetOrCreateUpload(ctx context.Context, arg GetOrCreateUploadPa
 		&i.FileMimeType,
 		&i.CreatedAt,
 		&i.Created,
+	)
+	return i, err
+}
+
+const getUploadRef = `-- name: GetUploadRef :one
+SELECT
+    upload_refs.id AS upload_ref_id,
+    upload_refs.upload_id,
+    upload_refs.team_id,
+    upload_refs.uploader_id,
+    upload_refs.file_name,
+    uploads.storage_key,
+    uploads.file_sha256,
+    uploads.file_size,
+    uploads.file_mime_type
+FROM upload_refs
+LEFT JOIN uploads ON upload_refs.upload_id = uploads.id
+WHERE upload_refs.id = $1
+`
+
+type GetUploadRefRow struct {
+	UploadRefID  int32       `json:"upload_ref_id"`
+	UploadID     int32       `json:"upload_id"`
+	TeamID       int32       `json:"team_id"`
+	UploaderID   int32       `json:"uploader_id"`
+	FileName     string      `json:"file_name"`
+	StorageKey   pgtype.Text `json:"storage_key"`
+	FileSha256   pgtype.Text `json:"file_sha256"`
+	FileSize     pgtype.Int8 `json:"file_size"`
+	FileMimeType pgtype.Text `json:"file_mime_type"`
+}
+
+func (q *Queries) GetUploadRef(ctx context.Context, id int32) (GetUploadRefRow, error) {
+	row := q.db.QueryRow(ctx, getUploadRef, id)
+	var i GetUploadRefRow
+	err := row.Scan(
+		&i.UploadRefID,
+		&i.UploadID,
+		&i.TeamID,
+		&i.UploaderID,
+		&i.FileName,
+		&i.StorageKey,
+		&i.FileSha256,
+		&i.FileSize,
+		&i.FileMimeType,
 	)
 	return i, err
 }

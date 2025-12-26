@@ -18,7 +18,7 @@ type CommitUploadBody struct {
 }
 
 type ReplaceTagsBody struct {
-	Tags []Tag `json:"tags"`
+	Tags []TagPair `json:"tags"`
 }
 
 // ------ request ------

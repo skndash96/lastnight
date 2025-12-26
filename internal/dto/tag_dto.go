@@ -7,13 +7,13 @@ import (
 // TODO: Refactor DTO so that it does NOT contain any database-specific types
 
 // ------ body ------
-type Tag struct {
+type TagPair struct {
 	KeyID   int32 `json:"key_id" validate:"required"`
 	ValueID int32 `json:"value_id" validate:"required"`
 }
 
 type UpdateFiltersBody struct {
-	Filters []Tag `json:"filters" validate:"required"`
+	Filters []TagPair `json:"filters" validate:"required"`
 }
 
 type CreateTagKeyBody struct {

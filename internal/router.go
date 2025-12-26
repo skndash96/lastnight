@@ -1,4 +1,4 @@
-package api
+package app
 
 import (
 	"log"
@@ -9,11 +9,12 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/config"
 	"github.com/skndash96/lastnight-backend/internal/handler"
 	"github.com/skndash96/lastnight-backend/internal/provider"
+	"github.com/skndash96/lastnight-backend/internal/queue"
 	"github.com/skndash96/lastnight-backend/internal/repository"
 	"github.com/skndash96/lastnight-backend/internal/service"
 )
 
-func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
+func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool, ingestionQ *queue.IngestionQ) {
 	r := e.Group("/api")
 
 	authRepo := repository.NewAuthRepository(pool)
@@ -21,6 +22,12 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 
 	sessionProvider := provider.NewSessionProvider(cfg.Auth.Session, authRepo)
 	uploadProvider, err := provider.NewUploadProvider(cfg.Minio)
+
+	authSrv := service.NewAuthService(pool, sessionProvider)
+	uploadSrv := service.NewUploadService(uploadProvider, pool, ingestionQ)
+	teamSrv := service.NewTeamService(pool)
+	tagSrv := service.NewTagService(pool)
+
 	if err != nil {
 		log.Fatalf("failed to initialize upload provider: %v", err)
 	}
@@ -34,8 +41,6 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 	}
 
 	{
-		authSrv := service.NewAuthService(pool, sessionProvider)
-
 		h := handler.NewAuthHandler(cfg, authSrv)
 		g := r.Group("/auth")
 		g.POST("/login", h.Login)
@@ -44,9 +49,6 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 	}
 
 	{
-		teamSrv := service.NewTeamService(pool)
-		tagSrv := service.NewTagService(pool)
-
 		team_h := handler.NewTeamHandler(teamSrv)
 		tag_h := handler.NewTagHandler(tagSrv)
 
@@ -73,7 +75,6 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 		}
 
 		{
-			uploadSrv := service.NewUploadService(uploadProvider, pool)
 			h := handler.NewUploadHandler(uploadSrv)
 
 			uploadsG := teamG.Group("/uploads")
@@ -81,5 +82,15 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 			uploadsG.POST("/commit", h.CommitUpload)
 			uploadsG.PUT("/:uploadRefID/tags", h.ReplaceTags)
 		}
+	}
+
+	// for workers
+	{
+		g := r.Group("/internal")
+		g.Use(auth.InternalMw(cfg.WorkerToken))
+
+		internalH := handler.NewInternalHandler(uploadSrv)
+
+		g.GET("/upload-ref/:uploadRefID", internalH.GetUploadRef)
 	}
 }

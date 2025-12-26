@@ -4,7 +4,7 @@ import (
 	"log"
 
 	_ "github.com/skndash96/lastnight-backend/docs"
-	api "github.com/skndash96/lastnight-backend/internal"
+	app "github.com/skndash96/lastnight-backend/internal"
 )
 
 // @title Lastnight API
@@ -21,7 +21,7 @@ import (
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
 func main() {
-	if err := api.Server(); err != nil {
+	if err := app.Server(); err != nil {
 		log.Fatal(err)
 	}
 }

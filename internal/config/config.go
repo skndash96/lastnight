@@ -8,11 +8,14 @@ import (
 )
 
 type AppConfig struct {
-	IsProd bool
-	Port   int
-	DbURL  string
-	Auth   AuthConfig
-	Minio  MinioConfig
+	IsProd        bool
+	Port          int
+	DbURL         string
+	RedisURL      string
+	IngestQMaxLen int
+	WorkerToken   string
+	Auth          AuthConfig
+	Minio         MinioConfig
 }
 
 type AuthConfig struct {
@@ -52,9 +55,12 @@ func New() *AppConfig {
 	}
 
 	appCfg := &AppConfig{
-		IsProd: isProd,
-		Port:   port,
-		DbURL:  GetEnv("GOOSE_DBSTRING", ""),
+		IsProd:        isProd,
+		Port:          port,
+		DbURL:         GetEnv("GOOSE_DBSTRING", ""),
+		RedisURL:      GetEnv("REDIS_URL", ""),
+		IngestQMaxLen: 100000,
+		WorkerToken:   GetEnv("WORKER_TOKEN", ""),
 
 		Auth: AuthConfig{
 			Session: SessionConfig{
@@ -69,8 +75,8 @@ func New() *AppConfig {
 
 		Minio: MinioConfig{
 			Endpoint:   GetEnv("MINIO_ENDPOINT", ""),
-			Username:  GetEnv("MINIO_USERNAME", ""),
-			Password:  GetEnv("MINIO_PASSWORD", ""),
+			Username:   GetEnv("MINIO_USERNAME", ""),
+			Password:   GetEnv("MINIO_PASSWORD", ""),
 			BucketName: GetEnv("MINIO_BUCKET_NAME", ""),
 			Expiration: time.Duration(15 * time.Minute),
 			UseSSL:     isProd,

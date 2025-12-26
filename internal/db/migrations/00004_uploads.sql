@@ -16,8 +16,7 @@ CREATE TABLE IF NOT EXISTS upload_refs (
   uploader_id INTEGER NOT NULL REFERENCES users(id),
   team_id INTEGER NOT NULL REFERENCES teams(id),
   file_name TEXT NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  UNIQUE (upload_id, team_id)
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS upload_ref_tags (
