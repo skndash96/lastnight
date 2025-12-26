@@ -58,6 +58,15 @@ func (q *Queries) CreateUploadRefTags(ctx context.Context, arg CreateUploadRefTa
 	return err
 }
 
+const deleteAllUploadRefTags = `-- name: DeleteAllUploadRefTags :exec
+DELETE FROM upload_ref_tags WHERE upload_ref_id = $1
+`
+
+func (q *Queries) DeleteAllUploadRefTags(ctx context.Context, uploadRefID int32) error {
+	_, err := q.db.Exec(ctx, deleteAllUploadRefTags, uploadRefID)
+	return err
+}
+
 const getOrCreateUpload = `-- name: GetOrCreateUpload :one
 INSERT INTO uploads (storage_key, file_sha256, file_size, file_mime_type)
 VALUES ($1, $2, $3, $4)

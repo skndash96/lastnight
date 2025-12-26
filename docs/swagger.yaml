@@ -90,11 +90,22 @@ definitions:
     x-enum-varnames:
     - TeamUserRoleMember
     - TeamUserRoleMod
-  dto.CompleteUploadsBody:
+  dto.CommitUploadBody:
     properties:
-      files:
+      key:
+        type: string
+      mime_type:
+        type: string
+      name:
+        type: string
+      tags:
         items:
-          $ref: '#/definitions/service.CompleteUploadItem'
+          properties:
+            keyID:
+              type: integer
+            valueID:
+              type: integer
+          type: object
         type: array
     type: object
   dto.CreateTagKeyBody:
@@ -182,7 +193,16 @@ definitions:
     - email
     - password
     type: object
-  dto.PresignUploadResult:
+  dto.PresignUploadBody:
+    properties:
+      mime_type:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+    type: object
+  dto.PresignUploadResponse:
     properties:
       fields:
         additionalProperties:
@@ -190,20 +210,6 @@ definitions:
         type: object
       url:
         type: string
-    type: object
-  dto.PresignUploadsBody:
-    properties:
-      files:
-        items:
-          $ref: '#/definitions/service.PresignUploadItem'
-        type: array
-    type: object
-  dto.PresignUploadsResponse:
-    properties:
-      results:
-        items:
-          $ref: '#/definitions/dto.PresignUploadResult'
-        type: array
     type: object
   dto.RegisterRequest:
     properties:
@@ -249,28 +255,6 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/db.TagKey'
-    type: object
-  service.CompleteUploadItem:
-    properties:
-      key:
-        type: string
-      mime:
-        type: string
-      name:
-        type: string
-      size:
-        format: int64
-        type: integer
-    type: object
-  service.PresignUploadItem:
-    properties:
-      mime:
-        type: string
-      name:
-        type: string
-      size:
-        format: int64
-        type: integer
     type: object
 info:
   contact:
@@ -484,7 +468,7 @@ paths:
       summary: Delete Tag Key
       tags:
       - Tag
-    put:
+    patch:
       description: Update a tag key
       parameters:
       - description: Team ID
@@ -584,24 +568,24 @@ paths:
       summary: Delete Tag Value
       tags:
       - Tag
-  /api/teams/{teamID}/uploads/complete:
+  /api/teams/{teamID}/uploads/commit:
     post:
       consumes:
       - application/json
       description: Call this route after client-side uploading to the bucket via POST
-        policy. Processes uploaded files.
+        policy. Processes uploaded file.
       parameters:
       - description: Team ID
         in: path
         name: teamID
         required: true
         type: string
-      - description: Complete upload request
+      - description: Commit upload request
         in: body
         name: upload_request
         required: true
         schema:
-          $ref: '#/definitions/dto.CompleteUploadsBody'
+          $ref: '#/definitions/dto.CommitUploadBody'
       produces:
       - application/json
       responses:
@@ -611,7 +595,7 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Complete upload
+      summary: Commit upload
       tags:
       - Upload
   /api/teams/{teamID}/uploads/presign:
@@ -631,14 +615,14 @@ paths:
         name: upload_request
         required: true
         schema:
-          $ref: '#/definitions/dto.PresignUploadsBody'
+          $ref: '#/definitions/dto.PresignUploadBody'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.PresignUploadsResponse'
+            $ref: '#/definitions/dto.PresignUploadResponse'
         default:
           description: ""
           schema:

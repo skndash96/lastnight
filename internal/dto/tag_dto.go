@@ -6,27 +6,14 @@ import (
 
 // TODO: Refactor DTO so that it does NOT contain any database-specific types
 
-// ------ path params ------
-type TeamPathParams struct {
-	TeamID int32 `param:"teamID" validate:"required"`
-}
-
-type TagPathParams struct {
-	TeamPathParams
-	TagID int32 `param:"tagID" validate:"required"`
-}
-
-type TagValuePathParams struct {
-	TagPathParams
-	TagValueID int32 `param:"tagValueID" validate:"required"`
-}
-
 // ------ body ------
+type Tag struct {
+	KeyID   int32 `json:"key_id" validate:"required"`
+	ValueID int32 `json:"value_id" validate:"required"`
+}
+
 type UpdateFiltersBody struct {
-	Filters []struct {
-		KeyID   int32 `json:"key_id" validate:"required"`
-		ValueID int32 `json:"value_id" validate:"required"`
-	} `json:"filters" validate:"required"`
+	Filters []Tag `json:"filters" validate:"required"`
 }
 
 type CreateTagKeyBody struct {

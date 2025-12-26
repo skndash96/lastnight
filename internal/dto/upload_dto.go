@@ -7,7 +7,7 @@ type PresignUploadBody struct {
 	Size     int64  `json:"size"`
 }
 
-type CompleteUploadBody struct {
+type CommitUploadBody struct {
 	Key      string `json:"key"`
 	Name     string `json:"name"`
 	MimeType string `json:"mime_type"`
@@ -17,15 +17,24 @@ type CompleteUploadBody struct {
 	} `json:"tags"`
 }
 
+type ReplaceTagsBody struct {
+	Tags []Tag `json:"tags"`
+}
+
 // ------ request ------
 type PresignUploadRequest struct {
 	TeamPathParams
 	PresignUploadBody
 }
 
-type CompleteUploadRequest struct {
+type CommitUploadRequest struct {
 	TeamPathParams
-	CompleteUploadBody
+	CommitUploadBody
+}
+
+type ReplaceTagsRequest struct {
+	UploadRefPathParams
+	ReplaceTagsBody
 }
 
 // ------ response ------

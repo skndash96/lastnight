@@ -61,12 +61,16 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 		teamG.GET("/filters", tag_h.ListFilters)
 		teamG.PUT("/filters", tag_h.UpdateFilters)
 
-		teamG.POST("/tags", tag_h.CreateTagKey)
-		teamG.PUT("/tags/:tagID", tag_h.UpdateTagKey)
-		teamG.DELETE("/tags/:tagID", tag_h.DeleteTagKey)
+		{
+			tagsG := teamG.Group("/tags")
 
-		teamG.POST("/tags/:tagID/values", tag_h.CreateTagValue)
-		teamG.DELETE("/tags/:tagID/values/:tagValueID", tag_h.DeleteTagValue)
+			tagsG.POST("", tag_h.CreateTagKey)
+			tagsG.PATCH("/:tagID", tag_h.UpdateTagKey)
+			tagsG.DELETE("/:tagID", tag_h.DeleteTagKey)
+
+			tagsG.POST("/:tagID/values", tag_h.CreateTagValue)
+			tagsG.DELETE("/:tagID/values/:tagValueID", tag_h.DeleteTagValue)
+		}
 
 		{
 			uploadSrv := service.NewUploadService(uploadProvider, pool)
@@ -74,7 +78,8 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool) {
 
 			uploadsG := teamG.Group("/uploads")
 			uploadsG.POST("/presign", h.PresignUpload)
-			uploadsG.POST("/complete", h.CompleteUpload)
+			uploadsG.POST("/commit", h.CommitUpload)
+			uploadsG.PUT("/:uploadRefID/tags", h.ReplaceTags)
 		}
 	}
 }

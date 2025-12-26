@@ -119,7 +119,7 @@ func (h *tagHandler) CreateTagKey(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} dto.UpdateTagKeyResponse
 // @Failure default {object} dto.ErrorResponse
-// @Router /api/teams/{teamID}/tags/{tagID} [put]
+// @Router /api/teams/{teamID}/tags/{tagID} [patch]
 func (h *tagHandler) UpdateTagKey(c echo.Context) error {
 	v := new(dto.UpdateTagKeyRequest)
 	if err := c.Bind(v); err != nil {

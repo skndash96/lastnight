@@ -12,3 +12,6 @@ RETURNING *;
 -- name: CreateUploadRefTags :exec
 INSERT INTO upload_ref_tags (upload_ref_id, key_id, value_id)
 VALUES ($1, $2, $3);
+
+-- name: DeleteAllUploadRefTags :exec
+DELETE FROM upload_ref_tags WHERE upload_ref_id = $1;

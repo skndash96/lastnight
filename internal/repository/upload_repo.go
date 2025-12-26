@@ -55,3 +55,13 @@ func (r *uploadRepository) CreateUploadRefTag(ctx context.Context, uploadRefID i
 
 	return nil
 }
+
+func (r *uploadRepository) DeleteAllUploadRefTags(ctx context.Context, tx db.DBTX, uploadRefID int32) error {
+	err := r.q.DeleteAllUploadRefTags(ctx, uploadRefID)
+
+	if err != nil {
+		return NewRepoError(err, RepoErrInternal, "Failed to delete upload ref tags")
+	}
+
+	return nil
+}

@@ -311,7 +311,47 @@ const docTemplate = `{
             }
         },
         "/api/teams/{teamID}/tags/{tagID}": {
-            "put": {
+            "delete": {
+                "description": "Delete a tag key",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Delete Tag Key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeleteTagKeyResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
                 "description": "Update a tag key",
                 "produces": [
                     "application/json"
@@ -350,46 +390,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.UpdateTagKeyResponse"
-                        }
-                    },
-                    "default": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete a tag key",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tag"
-                ],
-                "summary": "Delete Tag Key",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Team ID",
-                        "name": "teamID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tag ID",
-                        "name": "tagID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.DeleteTagKeyResponse"
                         }
                     },
                     "default": {
@@ -501,9 +501,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/teams/{teamID}/uploads/complete": {
+        "/api/teams/{teamID}/uploads/commit": {
             "post": {
-                "description": "Call this route after client-side uploading to the bucket via POST policy. Processes uploaded files.",
+                "description": "Call this route after client-side uploading to the bucket via POST policy. Processes uploaded file.",
                 "consumes": [
                     "application/json"
                 ],
@@ -513,7 +513,7 @@ const docTemplate = `{
                 "tags": [
                     "Upload"
                 ],
-                "summary": "Complete upload",
+                "summary": "Commit upload",
                 "parameters": [
                     {
                         "type": "string",
@@ -523,12 +523,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Complete upload request",
+                        "description": "Commit upload request",
                         "name": "upload_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CompleteUploadsBody"
+                            "$ref": "#/definitions/dto.CommitUploadBody"
                         }
                     }
                 ],
@@ -572,7 +572,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.PresignUploadsBody"
+                            "$ref": "#/definitions/dto.PresignUploadBody"
                         }
                     }
                 ],
@@ -580,7 +580,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.PresignUploadsResponse"
+                            "$ref": "#/definitions/dto.PresignUploadResponse"
                         }
                     },
                     "default": {
@@ -729,13 +729,30 @@ const docTemplate = `{
                 "TeamUserRoleMod"
             ]
         },
-        "dto.CompleteUploadsBody": {
+        "dto.CommitUploadBody": {
             "type": "object",
             "properties": {
-                "files": {
+                "key": {
+                    "type": "string"
+                },
+                "mime_type": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/service.CompleteUploadItem"
+                        "type": "object",
+                        "properties": {
+                            "keyID": {
+                                "type": "integer"
+                            },
+                            "valueID": {
+                                "type": "integer"
+                            }
+                        }
                     }
                 }
             }
@@ -871,7 +888,21 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PresignUploadResult": {
+        "dto.PresignUploadBody": {
+            "type": "object",
+            "properties": {
+                "mime_type": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PresignUploadResponse": {
             "type": "object",
             "properties": {
                 "fields": {
@@ -882,28 +913,6 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.PresignUploadsBody": {
-            "type": "object",
-            "properties": {
-                "files": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/service.PresignUploadItem"
-                    }
-                }
-            }
-        },
-        "dto.PresignUploadsResponse": {
-            "type": "object",
-            "properties": {
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.PresignUploadResult"
-                    }
                 }
             }
         },
@@ -971,39 +980,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/db.TagKey"
-                }
-            }
-        },
-        "service.CompleteUploadItem": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "mime": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer",
-                    "format": "int64"
-                }
-            }
-        },
-        "service.PresignUploadItem": {
-            "type": "object",
-            "properties": {
-                "mime": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer",
-                    "format": "int64"
                 }
             }
         }

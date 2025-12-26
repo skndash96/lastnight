@@ -50,7 +50,7 @@ func (s *UploadService) PresignUpload(ctx context.Context, teamID int32, name, m
 	}, nil
 }
 
-func (s *UploadService) CompleteUpload(ctx context.Context, teamID, userID int32, tmpKey, name, mime string, tags [][]int32) error {
+func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, tmpKey, name, mime string, tags [][]int32) error {
 	info, err := s.uploadProvider.GetUploadInfo(ctx, tmpKey)
 	if err != nil {
 		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to get upload info for %s", tmpKey))
@@ -105,6 +105,32 @@ func (s *UploadService) CompleteUpload(ctx context.Context, teamID, userID int32
 	}
 
 	// TODO: push to queue
+
+	return nil
+}
+
+func (s *UploadService) ReplaceTags(ctx context.Context, teamID, userID, uploadRefID int32, tags [][]int32) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return NewSrvError(err, SrvErrInternal, "failed to start transaction")
+	}
+	defer tx.Rollback(ctx)
+
+	uploadRepo := repository.NewUploadRepository(tx)
+
+	if err := uploadRepo.DeleteAllUploadRefTags(ctx, tx, uploadRefID); err != nil {
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to delete upload tags for %d", uploadRefID))
+	}
+
+	for _, tag := range tags {
+		if err := uploadRepo.CreateUploadRefTag(ctx, uploadRefID, tag[0], tag[1]); err != nil {
+			return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload tag for %d", uploadRefID))
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return NewSrvError(err, SrvErrInternal, "failed to complete upload")
+	}
 
 	return nil
 }

@@ -57,23 +57,23 @@ func (h *uploadHandler) PresignUpload(c echo.Context) error {
 	return nil
 }
 
-// @Summary Complete upload
+// @Summary Commit upload
 // @Description Call this route after client-side uploading to the bucket via POST policy. Processes uploaded file.
 // @Tags Upload
 // @Accept json
 // @Param teamID path string true "Team ID"
-// @Param upload_request body dto.CompleteUploadBody true "Complete upload request"
+// @Param upload_request body dto.CommitUploadBody true "Commit upload request"
 // @Produce json
 // @Success 200
 // @Failure default {object} dto.ErrorResponse
-// @Router /api/teams/{teamID}/uploads/complete [post]
-func (h *uploadHandler) CompleteUpload(c echo.Context) error {
+// @Router /api/teams/{teamID}/uploads/commit [post]
+func (h *uploadHandler) CommitUpload(c echo.Context) error {
 	session, ok := auth.GetSession(c)
 	if !ok {
 		return echo.ErrUnauthorized
 	}
 
-	v := dto.CompleteUploadRequest{}
+	v := dto.CommitUploadRequest{}
 	if err := c.Bind(&v); err != nil {
 		return err
 	}
@@ -87,7 +87,48 @@ func (h *uploadHandler) CompleteUpload(c echo.Context) error {
 		tags[i] = []int32{tag.KeyID, tag.ValueID}
 	}
 
-	err := h.uploadSrv.CompleteUpload(c.Request().Context(), session.TeamID, session.UserID, v.Key, v.Name, v.MimeType, tags)
+	err := h.uploadSrv.CommitUpload(c.Request().Context(), session.TeamID, session.UserID, v.Key, v.Name, v.MimeType, tags)
+	if err != nil {
+		return err
+	}
+
+	c.NoContent(http.StatusCreated)
+
+	return nil
+}
+
+// @Summary Replace Tags
+// @Description Replace tags of an uploaded file.
+// @Tags Upload
+// @Accept json
+// @Param teamID path string true "Team ID"
+// @Param uploadID path string true "Upload ID"
+// @Param upload_request body dto.ReplaceTagsBody true "Replace tags request"
+// @Produce json
+// @Success 200
+// @Failure default {object} dto.ErrorResponse
+// @Router /api/teams/{teamID}/upload-refs/{uploadRefID}/tags [put]
+func (h *uploadHandler) ReplaceTags(c echo.Context) error {
+	session, ok := auth.GetSession(c)
+	if !ok {
+		return echo.ErrUnauthorized
+	}
+
+	v := dto.ReplaceTagsRequest{}
+	if err := c.Bind(&v); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&v); err != nil {
+		return err
+	}
+
+	tags := make([][]int32, len(v.Tags))
+	for i, tag := range v.Tags {
+		tags[i] = []int32{tag.KeyID, tag.ValueID}
+	}
+
+	err := h.uploadSrv.ReplaceTags(c.Request().Context(), session.TeamID, session.UserID, v.UploadRefID, tags)
 	if err != nil {
 		return err
 	}
