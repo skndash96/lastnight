@@ -53,21 +53,19 @@ func (h *internalHandler) UpdateDocProcStatus(c echo.Context) error {
 	}
 
 	var v struct {
-		Status db.DocProcStatus `json:"status"`
+		Success bool `json:"success"`
 	}
 
 	if err := c.Bind(&v); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request body")
 	}
 
-	switch v.Status {
-	case db.DocProcStatusPending, db.DocProcStatusCompleted, db.DocProcStatusFailed:
-		// pass
-	default:
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid status")
+	procStatus := db.DocProcStatusFailed
+	if v.Success {
+		procStatus = db.DocProcStatusCompleted
 	}
 
-	err = h.docSrv.UpdateDocStatus(c.Request().Context(), int32(docIDInt), v.Status)
+	err = h.docSrv.UpdateDocStatus(c.Request().Context(), int32(docIDInt), procStatus)
 	if err != nil {
 		return err
 	}
