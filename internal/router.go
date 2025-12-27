@@ -24,7 +24,7 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool, ing
 	uploadProvider, err := provider.NewUploadProvider(cfg.Minio)
 
 	authSrv := service.NewAuthService(pool, sessionProvider)
-	uploadSrv := service.NewUploadService(uploadProvider, pool, ingestionQ)
+	docSrv := service.NewDocumentService(uploadProvider, pool, ingestionQ)
 	teamSrv := service.NewTeamService(pool)
 	tagSrv := service.NewTagService(pool)
 
@@ -75,12 +75,12 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool, ing
 		}
 
 		{
-			h := handler.NewUploadHandler(uploadSrv)
+			h := handler.NewDocHandler(docSrv)
 
 			uploadsG := teamG.Group("/uploads")
 			uploadsG.POST("/presign", h.PresignUpload)
 			uploadsG.POST("/commit", h.CommitUpload)
-			uploadsG.PUT("/:uploadRefID/tags", h.ReplaceTags)
+			uploadsG.PUT("/:docRefID/tags", h.UpdateDocRefTags)
 		}
 	}
 
@@ -89,8 +89,9 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool, ing
 		g := r.Group("/internal")
 		g.Use(auth.InternalMw(cfg.WorkerToken))
 
-		internalH := handler.NewInternalHandler(uploadSrv)
+		internalH := handler.NewInternalHandler(docSrv)
 
-		g.GET("/upload-ref/:uploadRefID", internalH.GetUploadRef)
+		g.GET("/docs/:docID", internalH.GetDoc)
+		g.PATCH("/docs/:docID/status", internalH.UpdateDocProcStatus)
 	}
 }

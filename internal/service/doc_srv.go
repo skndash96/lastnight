@@ -15,14 +15,14 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/repository"
 )
 
-type UploadService struct {
+type DocumentService struct {
 	pool           *pgxpool.Pool
 	uploadProvider provider.UploadProvider
 	ingestionQ     *queue.IngestionQ
 }
 
-func NewUploadService(uploadProvider provider.UploadProvider, pool *pgxpool.Pool, ingestionQ *queue.IngestionQ) *UploadService {
-	return &UploadService{
+func NewDocumentService(uploadProvider provider.UploadProvider, pool *pgxpool.Pool, ingestionQ *queue.IngestionQ) *DocumentService {
+	return &DocumentService{
 		pool:           pool,
 		uploadProvider: uploadProvider,
 		ingestionQ:     ingestionQ,
@@ -34,16 +34,16 @@ type PresignUploadResult struct {
 	Fields map[string]string
 }
 
-func (s *UploadService) GetUploadRef(ctx context.Context, id int32) (*db.GetUploadRefRow, error) {
-	uploadRepo := repository.NewUploadRepository(s.pool)
-	ref, err := uploadRepo.GetUploadRef(ctx, id)
+func (s *DocumentService) GetDoc(ctx context.Context, id int32) (*db.Doc, error) {
+	docRepo := repository.NewDocRepository(s.pool)
+	ref, err := docRepo.GetDoc(ctx, id)
 	if err != nil {
-		return nil, NewSrvError(err, SrvErrInternal, "Failed to get upload reference")
+		return nil, NewSrvError(err, SrvErrInternal, "Failed to get doc reference")
 	}
 	return ref, nil
 }
 
-func (s *UploadService) PresignUpload(ctx context.Context, teamID int32, name, mimeType string, size int64) (*PresignUploadResult, error) {
+func (s *DocumentService) PresignUpload(ctx context.Context, teamID int32, name, mimeType string, size int64) (*PresignUploadResult, error) {
 	// Allow only application/* mime types
 	// TODO: Support image/* mime types while combining images to PDF if done so
 	if !strings.HasPrefix(mimeType, "application/") {
@@ -63,7 +63,7 @@ func (s *UploadService) PresignUpload(ctx context.Context, teamID int32, name, m
 	}, nil
 }
 
-func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, tmpKey, name, mime string, tags [][]int32) error {
+func (s *DocumentService) CommitUpload(ctx context.Context, teamID, userID int32, tmpKey, name, mime string, tags [][]int32) error {
 	info, err := s.uploadProvider.GetUploadInfo(ctx, tmpKey)
 	if err != nil {
 		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to get upload info for %s", tmpKey))
@@ -81,33 +81,33 @@ func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, 
 	}
 	defer tx.Rollback(ctx)
 
-	uploadRepo := repository.NewUploadRepository(tx)
+	docRepo := repository.NewDocRepository(tx)
 
 	// (hash, size) duplication check happens here
-	upload, err := uploadRepo.GetOrCreateUpload(ctx, newKey, mime, info.Size, info.SHA256)
+	doc, err := docRepo.GetOrCreateDoc(ctx, newKey, mime, info.Size, info.SHA256)
 	if err != nil {
-		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload for %s", newKey))
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create doc for %s", newKey))
 	}
 
-	// TODO: Add constraint UNIQUE (upload_id, team_id, user_id, name)
+	// TODO: Add constraint UNIQUE (doc_id, team_id, user_id, name)
 	// or idempotency in this route
-	uploadRef, err := uploadRepo.CreateUploadRef(ctx, upload.ID, teamID, userID, name)
+	docRef, err := docRepo.CreateDocRef(ctx, doc.ID, teamID, userID, name)
 	if err != nil {
-		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload reference for %s", newKey))
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create doc reference for %s", newKey))
 	}
 
 	for _, tag := range tags {
-		if err := uploadRepo.CreateUploadRefTag(ctx, uploadRef.ID, tag[0], tag[1]); err != nil {
-			return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload tag for %s", newKey))
+		if err := docRepo.CreateDocRefTag(ctx, docRef.ID, tag[0], tag[1]); err != nil {
+			return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create doc tag for %s", newKey))
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return NewSrvError(err, SrvErrInternal, "failed to complete upload")
+		return NewSrvError(err, SrvErrInternal, "failed to complete doc")
 	}
 
-	if upload.Created == false {
-		fmt.Printf("Upload already exists, using duplicate: %s\n", upload.StorageKey)
+	if doc.Created == false {
+		fmt.Printf("Doc already exists, using duplicate: %s\n", doc.StorageKey)
 		if err := s.uploadProvider.DeleteObject(ctx, tmpKey); err != nil {
 			// it's not a fatal error, so we can continue
 			fmt.Printf("failed to delete duplicate upload %s: %v\n", tmpKey, err)
@@ -123,39 +123,49 @@ func (s *UploadService) CommitUpload(ctx context.Context, teamID, userID int32, 
 	}
 
 	job := &queue.IngestionJob{
-		ID:    upload.ID,
-		RefID: uploadRef.ID,
+		ID:    doc.ID,
+		RefID: docRef.ID,
 	}
 
 	if err := s.ingestionQ.Enqueue(ctx, job); err != nil {
 		// TODO: Retry and Failure handling
-		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to start ingest job for %s", upload.StorageKey))
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to start ingest job for %s", doc.StorageKey))
 	}
 
 	return nil
 }
 
-func (s *UploadService) ReplaceTags(ctx context.Context, teamID, userID, uploadRefID int32, tags [][]int32) error {
+func (s *DocumentService) UpdateDocStatus(ctx context.Context, docID int32, status db.DocProcStatus) error {
+	docRepo := repository.NewDocRepository(s.pool)
+
+	if err := docRepo.UpdateDocStatus(ctx, docID, status); err != nil {
+		return NewSrvError(err, SrvErrInternal, "failed to update document status")
+	}
+
+	return nil
+}
+
+func (s *DocumentService) UpdateDocRefTags(ctx context.Context, teamID, userID, docRefID int32, tags [][]int32) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return NewSrvError(err, SrvErrInternal, "failed to start transaction")
 	}
 	defer tx.Rollback(ctx)
 
-	uploadRepo := repository.NewUploadRepository(tx)
+	docRepo := repository.NewDocRepository(tx)
 
-	if err := uploadRepo.DeleteAllUploadRefTags(ctx, tx, uploadRefID); err != nil {
-		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to delete upload tags for %d", uploadRefID))
+	if err := docRepo.DeleteAllDocRefTags(ctx, tx, docRefID); err != nil {
+		return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to delete doc tags for %d", docRefID))
 	}
 
 	for _, tag := range tags {
-		if err := uploadRepo.CreateUploadRefTag(ctx, uploadRefID, tag[0], tag[1]); err != nil {
-			return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create upload tag for %d", uploadRefID))
+		if err := docRepo.CreateDocRefTag(ctx, docRefID, tag[0], tag[1]); err != nil {
+			return NewSrvError(err, SrvErrInternal, fmt.Sprintf("failed to create doc tag for %d", docRefID))
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return NewSrvError(err, SrvErrInternal, "failed to complete upload")
+		return NewSrvError(err, SrvErrInternal, "failed to complete doc")
 	}
 
 	return nil

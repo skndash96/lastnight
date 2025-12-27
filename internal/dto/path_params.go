@@ -4,9 +4,9 @@ type TeamPathParams struct {
 	TeamID int32 `param:"teamID" validate:"required"`
 }
 
-type UploadRefPathParams struct {
+type DocRefPathParams struct {
 	TeamPathParams
-	UploadRefID int32 `param:"uploadRefID" validate:"required"`
+	DocRefID int32 `param:"docRefID" validate:"required"`
 }
 
 type TagPathParams struct {

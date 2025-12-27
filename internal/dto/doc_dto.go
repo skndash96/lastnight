@@ -17,7 +17,7 @@ type CommitUploadBody struct {
 	} `json:"tags"`
 }
 
-type ReplaceTagsBody struct {
+type UpdateDocRefTagsBody struct {
 	Tags []TagPair `json:"tags"`
 }
 
@@ -32,9 +32,9 @@ type CommitUploadRequest struct {
 	CommitUploadBody
 }
 
-type ReplaceTagsRequest struct {
-	UploadRefPathParams
-	ReplaceTagsBody
+type UpdateDocRefTagsRequest struct {
+	DocRefPathParams
+	UpdateDocRefTagsBody
 }
 
 // ------ response ------

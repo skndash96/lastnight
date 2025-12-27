@@ -12,6 +12,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type DocProcStatus string
+
+const (
+	DocProcStatusPending   DocProcStatus = "pending"
+	DocProcStatusCompleted DocProcStatus = "completed"
+	DocProcStatusFailed    DocProcStatus = "failed"
+)
+
+func (e *DocProcStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DocProcStatus(s)
+	case string:
+		*e = DocProcStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DocProcStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDocProcStatus struct {
+	DocProcStatus DocProcStatus `json:"doc_proc_status"`
+	Valid         bool          `json:"valid"` // Valid is true if DocProcStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDocProcStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DocProcStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DocProcStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDocProcStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DocProcStatus), nil
+}
+
 type TagDataType string
 
 const (
@@ -107,6 +150,33 @@ type Account struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
+type Doc struct {
+	ID           int32         `json:"id"`
+	StorageKey   string        `json:"storage_key"`
+	FileSha256   string        `json:"file_sha256"`
+	FileSize     int64         `json:"file_size"`
+	FileMimeType string        `json:"file_mime_type"`
+	Status       DocProcStatus `json:"status"`
+	CreatedAt    time.Time     `json:"created_at"`
+}
+
+type DocRef struct {
+	ID        int32     `json:"id"`
+	DocID     int32     `json:"doc_id"`
+	UserID    int32     `json:"user_id"`
+	TeamID    int32     `json:"team_id"`
+	FileName  string    `json:"file_name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type DocRefTag struct {
+	ID        int32     `json:"id"`
+	DocRefID  int32     `json:"doc_ref_id"`
+	KeyID     int32     `json:"key_id"`
+	ValueID   int32     `json:"value_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type MemberFilter struct {
 	ID           int32     `json:"id"`
 	MembershipID int32     `json:"membership_id"`
@@ -150,32 +220,6 @@ type TeamMembership struct {
 	UserID   int32        `json:"user_id"`
 	Role     TeamUserRole `json:"role"`
 	JoinedAt time.Time    `json:"joined_at"`
-}
-
-type Upload struct {
-	ID           int32     `json:"id"`
-	StorageKey   string    `json:"storage_key"`
-	FileSha256   string    `json:"file_sha256"`
-	FileSize     int64     `json:"file_size"`
-	FileMimeType string    `json:"file_mime_type"`
-	CreatedAt    time.Time `json:"created_at"`
-}
-
-type UploadRef struct {
-	ID         int32     `json:"id"`
-	UploadID   int32     `json:"upload_id"`
-	UploaderID int32     `json:"uploader_id"`
-	TeamID     int32     `json:"team_id"`
-	FileName   string    `json:"file_name"`
-	CreatedAt  time.Time `json:"created_at"`
-}
-
-type UploadRefTag struct {
-	ID          int32     `json:"id"`
-	UploadRefID int32     `json:"upload_ref_id"`
-	KeyID       int32     `json:"key_id"`
-	ValueID     int32     `json:"value_id"`
-	CreatedAt   time.Time `json:"created_at"`
 }
 
 type User struct {

@@ -8,35 +8,33 @@ package db
 import (
 	"context"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createUploadRef = `-- name: CreateUploadRef :one
-INSERT INTO upload_refs (upload_id, team_id, uploader_id, file_name)
+const createDocRef = `-- name: CreateDocRef :one
+INSERT INTO doc_refs (doc_id, team_id, user_id, file_name)
 VALUES ($1, $2, $3, $4)
-RETURNING id, upload_id, uploader_id, team_id, file_name, created_at
+RETURNING id, doc_id, user_id, team_id, file_name, created_at
 `
 
-type CreateUploadRefParams struct {
-	UploadID   int32  `json:"upload_id"`
-	TeamID     int32  `json:"team_id"`
-	UploaderID int32  `json:"uploader_id"`
-	FileName   string `json:"file_name"`
+type CreateDocRefParams struct {
+	DocID    int32  `json:"doc_id"`
+	TeamID   int32  `json:"team_id"`
+	UserID   int32  `json:"user_id"`
+	FileName string `json:"file_name"`
 }
 
-func (q *Queries) CreateUploadRef(ctx context.Context, arg CreateUploadRefParams) (UploadRef, error) {
-	row := q.db.QueryRow(ctx, createUploadRef,
-		arg.UploadID,
+func (q *Queries) CreateDocRef(ctx context.Context, arg CreateDocRefParams) (DocRef, error) {
+	row := q.db.QueryRow(ctx, createDocRef,
+		arg.DocID,
 		arg.TeamID,
-		arg.UploaderID,
+		arg.UserID,
 		arg.FileName,
 	)
-	var i UploadRef
+	var i DocRef
 	err := row.Scan(
 		&i.ID,
-		&i.UploadID,
-		&i.UploaderID,
+		&i.DocID,
+		&i.UserID,
 		&i.TeamID,
 		&i.FileName,
 		&i.CreatedAt,
@@ -44,116 +42,108 @@ func (q *Queries) CreateUploadRef(ctx context.Context, arg CreateUploadRefParams
 	return i, err
 }
 
-const createUploadRefTags = `-- name: CreateUploadRefTags :exec
-INSERT INTO upload_ref_tags (upload_ref_id, key_id, value_id)
+const createDocRefTags = `-- name: CreateDocRefTags :exec
+INSERT INTO doc_ref_tags (doc_ref_id, key_id, value_id)
 VALUES ($1, $2, $3)
 `
 
-type CreateUploadRefTagsParams struct {
-	UploadRefID int32 `json:"upload_ref_id"`
-	KeyID       int32 `json:"key_id"`
-	ValueID     int32 `json:"value_id"`
+type CreateDocRefTagsParams struct {
+	DocRefID int32 `json:"doc_ref_id"`
+	KeyID    int32 `json:"key_id"`
+	ValueID  int32 `json:"value_id"`
 }
 
-func (q *Queries) CreateUploadRefTags(ctx context.Context, arg CreateUploadRefTagsParams) error {
-	_, err := q.db.Exec(ctx, createUploadRefTags, arg.UploadRefID, arg.KeyID, arg.ValueID)
+func (q *Queries) CreateDocRefTags(ctx context.Context, arg CreateDocRefTagsParams) error {
+	_, err := q.db.Exec(ctx, createDocRefTags, arg.DocRefID, arg.KeyID, arg.ValueID)
 	return err
 }
 
-const deleteAllUploadRefTags = `-- name: DeleteAllUploadRefTags :exec
-DELETE FROM upload_ref_tags WHERE upload_ref_id = $1
+const deleteAllDocRefTags = `-- name: DeleteAllDocRefTags :exec
+DELETE FROM doc_ref_tags WHERE doc_ref_id = $1
 `
 
-func (q *Queries) DeleteAllUploadRefTags(ctx context.Context, uploadRefID int32) error {
-	_, err := q.db.Exec(ctx, deleteAllUploadRefTags, uploadRefID)
+func (q *Queries) DeleteAllDocRefTags(ctx context.Context, docRefID int32) error {
+	_, err := q.db.Exec(ctx, deleteAllDocRefTags, docRefID)
 	return err
 }
 
-const getOrCreateUpload = `-- name: GetOrCreateUpload :one
-INSERT INTO uploads (storage_key, file_sha256, file_size, file_mime_type)
+const getDoc = `-- name: GetDoc :one
+SELECT id, storage_key, file_sha256, file_size, file_mime_type, status, created_at
+FROM docs
+WHERE docs.id = $1
+`
+
+func (q *Queries) GetDoc(ctx context.Context, id int32) (Doc, error) {
+	row := q.db.QueryRow(ctx, getDoc, id)
+	var i Doc
+	err := row.Scan(
+		&i.ID,
+		&i.StorageKey,
+		&i.FileSha256,
+		&i.FileSize,
+		&i.FileMimeType,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getOrCreateDoc = `-- name: GetOrCreateDoc :one
+INSERT INTO docs (storage_key, file_sha256, file_size, file_mime_type)
 VALUES ($1, $2, $3, $4)
-ON CONFLICT (file_sha256, file_size) DO UPDATE SET storage_key = uploads.storage_key
-RETURNING id, storage_key, file_sha256, file_size, file_mime_type, created_at, (xmax = 0) as created
+ON CONFLICT (file_sha256, file_size) DO UPDATE SET storage_key = docs.storage_key
+RETURNING id, storage_key, file_sha256, file_size, file_mime_type, status, created_at, (xmax = 0) as created
 `
 
-type GetOrCreateUploadParams struct {
+type GetOrCreateDocParams struct {
 	StorageKey   string `json:"storage_key"`
 	FileSha256   string `json:"file_sha256"`
 	FileSize     int64  `json:"file_size"`
 	FileMimeType string `json:"file_mime_type"`
 }
 
-type GetOrCreateUploadRow struct {
-	ID           int32     `json:"id"`
-	StorageKey   string    `json:"storage_key"`
-	FileSha256   string    `json:"file_sha256"`
-	FileSize     int64     `json:"file_size"`
-	FileMimeType string    `json:"file_mime_type"`
-	CreatedAt    time.Time `json:"created_at"`
-	Created      bool      `json:"created"`
+type GetOrCreateDocRow struct {
+	ID           int32         `json:"id"`
+	StorageKey   string        `json:"storage_key"`
+	FileSha256   string        `json:"file_sha256"`
+	FileSize     int64         `json:"file_size"`
+	FileMimeType string        `json:"file_mime_type"`
+	Status       DocProcStatus `json:"status"`
+	CreatedAt    time.Time     `json:"created_at"`
+	Created      bool          `json:"created"`
 }
 
-func (q *Queries) GetOrCreateUpload(ctx context.Context, arg GetOrCreateUploadParams) (GetOrCreateUploadRow, error) {
-	row := q.db.QueryRow(ctx, getOrCreateUpload,
+func (q *Queries) GetOrCreateDoc(ctx context.Context, arg GetOrCreateDocParams) (GetOrCreateDocRow, error) {
+	row := q.db.QueryRow(ctx, getOrCreateDoc,
 		arg.StorageKey,
 		arg.FileSha256,
 		arg.FileSize,
 		arg.FileMimeType,
 	)
-	var i GetOrCreateUploadRow
+	var i GetOrCreateDocRow
 	err := row.Scan(
 		&i.ID,
 		&i.StorageKey,
 		&i.FileSha256,
 		&i.FileSize,
 		&i.FileMimeType,
+		&i.Status,
 		&i.CreatedAt,
 		&i.Created,
 	)
 	return i, err
 }
 
-const getUploadRef = `-- name: GetUploadRef :one
-SELECT
-    upload_refs.id AS upload_ref_id,
-    upload_refs.upload_id,
-    upload_refs.team_id,
-    upload_refs.uploader_id,
-    upload_refs.file_name,
-    uploads.storage_key,
-    uploads.file_sha256,
-    uploads.file_size,
-    uploads.file_mime_type
-FROM upload_refs
-LEFT JOIN uploads ON upload_refs.upload_id = uploads.id
-WHERE upload_refs.id = $1
+const updateDocStatus = `-- name: UpdateDocStatus :exec
+UPDATE docs SET status = $2 WHERE id = $1
 `
 
-type GetUploadRefRow struct {
-	UploadRefID  int32       `json:"upload_ref_id"`
-	UploadID     int32       `json:"upload_id"`
-	TeamID       int32       `json:"team_id"`
-	UploaderID   int32       `json:"uploader_id"`
-	FileName     string      `json:"file_name"`
-	StorageKey   pgtype.Text `json:"storage_key"`
-	FileSha256   pgtype.Text `json:"file_sha256"`
-	FileSize     pgtype.Int8 `json:"file_size"`
-	FileMimeType pgtype.Text `json:"file_mime_type"`
+type UpdateDocStatusParams struct {
+	ID     int32         `json:"id"`
+	Status DocProcStatus `json:"status"`
 }
 
-func (q *Queries) GetUploadRef(ctx context.Context, id int32) (GetUploadRefRow, error) {
-	row := q.db.QueryRow(ctx, getUploadRef, id)
-	var i GetUploadRefRow
-	err := row.Scan(
-		&i.UploadRefID,
-		&i.UploadID,
-		&i.TeamID,
-		&i.UploaderID,
-		&i.FileName,
-		&i.StorageKey,
-		&i.FileSha256,
-		&i.FileSize,
-		&i.FileMimeType,
-	)
-	return i, err
+func (q *Queries) UpdateDocStatus(ctx context.Context, arg UpdateDocStatusParams) error {
+	_, err := q.db.Exec(ctx, updateDocStatus, arg.ID, arg.Status)
+	return err
 }

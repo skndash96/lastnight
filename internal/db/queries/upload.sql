@@ -1,32 +1,25 @@
--- name: GetOrCreateUpload :one
-INSERT INTO uploads (storage_key, file_sha256, file_size, file_mime_type)
+-- name: GetOrCreateDoc :one
+INSERT INTO docs (storage_key, file_sha256, file_size, file_mime_type)
 VALUES ($1, $2, $3, $4)
-ON CONFLICT (file_sha256, file_size) DO UPDATE SET storage_key = uploads.storage_key
+ON CONFLICT (file_sha256, file_size) DO UPDATE SET storage_key = docs.storage_key
 RETURNING *, (xmax = 0) as created;
 
--- name: GetUploadRef :one
-SELECT
-    upload_refs.id AS upload_ref_id,
-    upload_refs.upload_id,
-    upload_refs.team_id,
-    upload_refs.uploader_id,
-    upload_refs.file_name,
-    uploads.storage_key,
-    uploads.file_sha256,
-    uploads.file_size,
-    uploads.file_mime_type
-FROM upload_refs
-LEFT JOIN uploads ON upload_refs.upload_id = uploads.id
-WHERE upload_refs.id = $1;
+-- name: GetDoc :one
+SELECT *
+FROM docs
+WHERE docs.id = $1;
 
--- name: CreateUploadRef :one
-INSERT INTO upload_refs (upload_id, team_id, uploader_id, file_name)
+-- name: CreateDocRef :one
+INSERT INTO doc_refs (doc_id, team_id, user_id, file_name)
 VALUES ($1, $2, $3, $4)
 RETURNING *;
 
--- name: CreateUploadRefTags :exec
-INSERT INTO upload_ref_tags (upload_ref_id, key_id, value_id)
+-- name: CreateDocRefTags :exec
+INSERT INTO doc_ref_tags (doc_ref_id, key_id, value_id)
 VALUES ($1, $2, $3);
 
--- name: DeleteAllUploadRefTags :exec
-DELETE FROM upload_ref_tags WHERE upload_ref_id = $1;
+-- name: UpdateDocStatus :exec
+UPDATE docs SET status = $2 WHERE id = $1;
+
+-- name: DeleteAllDocRefTags :exec
+DELETE FROM doc_ref_tags WHERE doc_ref_id = $1;

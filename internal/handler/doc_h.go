@@ -9,19 +9,19 @@ import (
 	"github.com/skndash96/lastnight-backend/internal/service"
 )
 
-type uploadHandler struct {
-	uploadSrv *service.UploadService
+type docHandler struct {
+	docSrv *service.DocumentService
 }
 
-func NewUploadHandler(uploadSrv *service.UploadService) *uploadHandler {
-	return &uploadHandler{
-		uploadSrv: uploadSrv,
+func NewDocHandler(docSrv *service.DocumentService) *docHandler {
+	return &docHandler{
+		docSrv: docSrv,
 	}
 }
 
 // @Summary Create pre-signed request
 // @Description Create a pre-signed request for uploading files to S3 via POST policy
-// @Tags Upload
+// @Tags Document
 // @Accept json
 // @Param teamID path string true "Team ID"
 // @Param upload_request body dto.PresignUploadBody true "Presign request"
@@ -29,7 +29,7 @@ func NewUploadHandler(uploadSrv *service.UploadService) *uploadHandler {
 // @Success 201 {object} dto.PresignUploadResponse
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/uploads/presign [post]
-func (h *uploadHandler) PresignUpload(c echo.Context) error {
+func (h *docHandler) PresignUpload(c echo.Context) error {
 	session, ok := auth.GetSession(c)
 	if !ok {
 		return echo.ErrUnauthorized
@@ -44,7 +44,7 @@ func (h *uploadHandler) PresignUpload(c echo.Context) error {
 		return err
 	}
 
-	result, err := h.uploadSrv.PresignUpload(c.Request().Context(), session.TeamID, v.Name, v.MimeType, v.Size)
+	result, err := h.docSrv.PresignUpload(c.Request().Context(), session.TeamID, v.Name, v.MimeType, v.Size)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (h *uploadHandler) PresignUpload(c echo.Context) error {
 
 // @Summary Commit upload
 // @Description Call this route after client-side uploading to the bucket via POST policy. Processes uploaded file.
-// @Tags Upload
+// @Tags Document
 // @Accept json
 // @Param teamID path string true "Team ID"
 // @Param upload_request body dto.CommitUploadBody true "Commit upload request"
@@ -67,7 +67,7 @@ func (h *uploadHandler) PresignUpload(c echo.Context) error {
 // @Success 200
 // @Failure default {object} dto.ErrorResponse
 // @Router /api/teams/{teamID}/uploads/commit [post]
-func (h *uploadHandler) CommitUpload(c echo.Context) error {
+func (h *docHandler) CommitUpload(c echo.Context) error {
 	session, ok := auth.GetSession(c)
 	if !ok {
 		return echo.ErrUnauthorized
@@ -87,7 +87,7 @@ func (h *uploadHandler) CommitUpload(c echo.Context) error {
 		tags[i] = []int32{tag.KeyID, tag.ValueID}
 	}
 
-	err := h.uploadSrv.CommitUpload(c.Request().Context(), session.TeamID, session.UserID, v.Key, v.Name, v.MimeType, tags)
+	err := h.docSrv.CommitUpload(c.Request().Context(), session.TeamID, session.UserID, v.Key, v.Name, v.MimeType, tags)
 	if err != nil {
 		return err
 	}
@@ -97,24 +97,24 @@ func (h *uploadHandler) CommitUpload(c echo.Context) error {
 	return nil
 }
 
-// @Summary Replace Tags
-// @Description Replace tags of an uploaded file.
-// @Tags Upload
+// @Summary Update DocRef Tags
+// @Description Replace tags of a document reference.
+// @Tags Document
 // @Accept json
 // @Param teamID path string true "Team ID"
 // @Param uploadID path string true "Upload ID"
-// @Param upload_request body dto.ReplaceTagsBody true "Replace tags request"
+// @Param upload_request body dto.UpdateDocRefBody true "Replace tags request"
 // @Produce json
 // @Success 200
 // @Failure default {object} dto.ErrorResponse
-// @Router /api/teams/{teamID}/upload-refs/{uploadRefID}/tags [put]
-func (h *uploadHandler) ReplaceTags(c echo.Context) error {
+// @Router /api/teams/{teamID}/upload-refs/{docRefID}/tags [put]
+func (h *docHandler) UpdateDocRefTags(c echo.Context) error {
 	session, ok := auth.GetSession(c)
 	if !ok {
 		return echo.ErrUnauthorized
 	}
 
-	v := dto.ReplaceTagsRequest{}
+	v := dto.UpdateDocRefTagsRequest{}
 	if err := c.Bind(&v); err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (h *uploadHandler) ReplaceTags(c echo.Context) error {
 		tags[i] = []int32{tag.KeyID, tag.ValueID}
 	}
 
-	err := h.uploadSrv.ReplaceTags(c.Request().Context(), session.TeamID, session.UserID, v.UploadRefID, tags)
+	err := h.docSrv.UpdateDocRefTags(c.Request().Context(), session.TeamID, session.UserID, v.DocRefID, tags)
 	if err != nil {
 		return err
 	}
