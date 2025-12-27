@@ -266,6 +266,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/teams/{teamID}/refs/{docRefID}/tags": {
+            "put": {
+                "description": "Replace tags of a document reference.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Document"
+                ],
+                "summary": "Update DocRef Tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Team ID",
+                        "name": "teamID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Document ID",
+                        "name": "docID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Replace tags request",
+                        "name": "doc_ref_tags_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateDocRefTagsBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/teams/{teamID}/tags": {
             "post": {
                 "description": "Create a new tag key",
@@ -936,6 +987,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.TagPair": {
+            "type": "object",
+            "required": [
+                "key_id",
+                "value_id"
+            ],
+            "properties": {
+                "key_id": {
+                    "type": "integer"
+                },
+                "value_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UpdateDocRefTagsBody": {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagPair"
+                    }
+                }
+            }
+        },
         "dto.UpdateFiltersBody": {
             "type": "object",
             "required": [
@@ -945,19 +1022,7 @@ const docTemplate = `{
                 "filters": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "required": [
-                            "key_id",
-                            "value_id"
-                        ],
-                        "properties": {
-                            "key_id": {
-                                "type": "integer"
-                            },
-                            "value_id": {
-                                "type": "integer"
-                            }
-                        }
+                        "$ref": "#/definitions/dto.TagPair"
                     }
                 }
             }

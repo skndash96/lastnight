@@ -225,19 +225,28 @@ definitions:
     - name
     - password
     type: object
+  dto.TagPair:
+    properties:
+      key_id:
+        type: integer
+      value_id:
+        type: integer
+    required:
+    - key_id
+    - value_id
+    type: object
+  dto.UpdateDocRefTagsBody:
+    properties:
+      tags:
+        items:
+          $ref: '#/definitions/dto.TagPair'
+        type: array
+    type: object
   dto.UpdateFiltersBody:
     properties:
       filters:
         items:
-          properties:
-            key_id:
-              type: integer
-            value_id:
-              type: integer
-          required:
-          - key_id
-          - value_id
-          type: object
+          $ref: '#/definitions/dto.TagPair'
         type: array
     required:
     - filters
@@ -411,6 +420,40 @@ paths:
       summary: Update Filters
       tags:
       - Tag
+  /api/teams/{teamID}/refs/{docRefID}/tags:
+    put:
+      consumes:
+      - application/json
+      description: Replace tags of a document reference.
+      parameters:
+      - description: Team ID
+        in: path
+        name: teamID
+        required: true
+        type: string
+      - description: Document ID
+        in: path
+        name: docID
+        required: true
+        type: string
+      - description: Replace tags request
+        in: body
+        name: doc_ref_tags_request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateDocRefTagsBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update DocRef Tags
+      tags:
+      - Document
   /api/teams/{teamID}/tags:
     post:
       description: Create a new tag key

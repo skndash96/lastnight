@@ -75,12 +75,18 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool, ing
 		}
 
 		{
+			h := handler.NewUploadHandler(docSrv)
+			g := teamG.Group("/uploads")
+			g.POST("/presign", h.PresignUpload)
+			g.POST("/commit", h.CommitUpload)
+		}
+
+		{
 			h := handler.NewDocHandler(docSrv)
 
-			uploadsG := teamG.Group("/uploads")
-			uploadsG.POST("/presign", h.PresignUpload)
-			uploadsG.POST("/commit", h.CommitUpload)
-			uploadsG.PUT("/:docRefID/tags", h.UpdateDocRefTags)
+			docRefsG := teamG.Group("/refs")
+
+			docRefsG.PUT("/:docRefID/tags", h.UpdateDocRefTags)
 		}
 	}
 
