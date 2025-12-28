@@ -18,8 +18,5 @@ RETURNING *;
 INSERT INTO doc_ref_tags (doc_ref_id, key_id, value_id)
 VALUES ($1, $2, $3);
 
--- name: UpdateDocStatus :exec
-UPDATE docs SET status = $2 WHERE id = $1;
-
 -- name: DeleteAllDocRefTags :exec
 DELETE FROM doc_ref_tags WHERE doc_ref_id = $1;

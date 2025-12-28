@@ -64,18 +64,6 @@ func (r *docRepository) CreateDocRefTag(ctx context.Context, docRefID int32, key
 	return nil
 }
 
-func (r *docRepository) UpdateDocStatus(ctx context.Context, docID int32, status db.DocProcStatus) error {
-	err := r.q.UpdateDocStatus(ctx, db.UpdateDocStatusParams{
-		Status: status,
-	})
-
-	if err != nil {
-		return NewRepoError(err, RepoErrInternal, "Failed to update doc reference status")
-	}
-
-	return nil
-}
-
 func (r *docRepository) DeleteAllDocRefTags(ctx context.Context, tx db.DBTX, docRefID int32) error {
 	err := r.q.DeleteAllDocRefTags(ctx, docRefID)
 

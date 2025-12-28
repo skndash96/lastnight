@@ -135,16 +135,6 @@ func (s *DocumentService) CommitUpload(ctx context.Context, teamID, userID int32
 	return nil
 }
 
-func (s *DocumentService) UpdateDocStatus(ctx context.Context, docID int32, status db.DocProcStatus) error {
-	docRepo := repository.NewDocRepository(s.pool)
-
-	if err := docRepo.UpdateDocStatus(ctx, docID, status); err != nil {
-		return NewSrvError(err, SrvErrInternal, "failed to update document status")
-	}
-
-	return nil
-}
-
 func (s *DocumentService) UpdateDocRefTags(ctx context.Context, teamID, userID, docRefID int32, tags [][]int32) error {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {

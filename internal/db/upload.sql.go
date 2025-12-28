@@ -133,17 +133,3 @@ func (q *Queries) GetOrCreateDoc(ctx context.Context, arg GetOrCreateDocParams) 
 	)
 	return i, err
 }
-
-const updateDocStatus = `-- name: UpdateDocStatus :exec
-UPDATE docs SET status = $2 WHERE id = $1
-`
-
-type UpdateDocStatusParams struct {
-	ID     int32         `json:"id"`
-	Status DocProcStatus `json:"status"`
-}
-
-func (q *Queries) UpdateDocStatus(ctx context.Context, arg UpdateDocStatusParams) error {
-	_, err := q.db.Exec(ctx, updateDocStatus, arg.ID, arg.Status)
-	return err
-}

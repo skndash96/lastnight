@@ -89,15 +89,4 @@ func RegisterRoutes(e *echo.Echo, cfg *config.AppConfig, pool *pgxpool.Pool, ing
 			docRefsG.PUT("/:docRefID/tags", h.UpdateDocRefTags)
 		}
 	}
-
-	// for workers
-	{
-		g := r.Group("/internal")
-		g.Use(auth.InternalMw(cfg.WorkerToken))
-
-		internalH := handler.NewInternalHandler(docSrv)
-
-		g.GET("/docs/:docID", internalH.GetDoc)
-		g.PATCH("/docs/:docID/status", internalH.UpdateDocProcStatus)
-	}
 }
