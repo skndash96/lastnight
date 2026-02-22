@@ -1,5 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
+CREATE EXTENSION vector;
+
 CREATE TYPE doc_proc_status AS ENUM ('pending', 'completed', 'failed');
 
 CREATE TABLE IF NOT EXISTS docs (
@@ -30,12 +32,26 @@ CREATE TABLE IF NOT EXISTS doc_ref_tags (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE (doc_ref_id, key_id)
 );
+
+CREATE TABLE IF NOT EXISTS doc_chunks (
+  id SERIAL PRIMARY KEY,
+  doc_id INTEGER NOT NULL REFERENCES doc_refs(id),
+  chunk_idx INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  meta JSONB NOT NULL DEFAULT '{}',
+  embedding vector(384)
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS doc_embeddings;
 DROP TABLE IF EXISTS doc_ref_tags;
 DROP TABLE IF EXISTS doc_refs;
 DROP TABLE IF EXISTS docs;
+
 DROP TYPE IF EXISTS doc_proc_status;
+
+DROP EXTENSION IF EXISTS vector;
 -- +goose StatementEnd

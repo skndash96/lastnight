@@ -1,0 +1,12 @@
+[project]
+name = "lastnight-worker"
+version = "0.1.0"
+description = "Lastnight pipeline worker"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "docling>=2.66.0",
+    "redis>=7.0.1",
+    "requests>=2.32.5",
+    "transformers>=4.57.3",
+]
